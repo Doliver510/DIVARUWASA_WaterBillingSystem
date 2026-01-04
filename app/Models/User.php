@@ -4,6 +4,8 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -18,7 +20,10 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'role_id',
+        'first_name',
+        'middle_name',
+        'last_name',
         'email',
         'password',
     ];
@@ -34,6 +39,13 @@ class User extends Authenticatable
     ];
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = ['full_name'];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -44,5 +56,39 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the user's full name.
+     */
+    public function getFullNameAttribute(): string
+    {
+        $parts = array_filter([
+            $this->first_name,
+            $this->middle_name,
+            $this->last_name,
+        ]);
+
+        return implode(' ', $parts);
+    }
+
+    /**
+     * Get the user's formal name (Last Name, First Name M.I.).
+     */
+    public function getFormalNameAttribute(): string
+    {
+        $middleInitial = $this->middle_name ? strtoupper(substr($this->middle_name, 0, 1)).'.' : '';
+
+        return trim($this->last_name.', '.$this->first_name.' '.$middleInitial);
+    }
+
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    public function consumer(): HasOne
+    {
+        return $this->hasOne(Consumer::class);
     }
 }
