@@ -12,15 +12,22 @@ class AppSettingSeeder extends Seeder
      */
     public function run(): void
     {
-        // Remove deprecated setting
+        // Remove deprecated settings
         AppSetting::where('key', 'water_rate_per_cu_m')->delete();
+        AppSetting::where('key', 'minimum_bill_amount')->delete();
 
         $settings = [
             [
-                'key' => 'minimum_bill_amount',
+                'key' => 'base_charge',
                 'value' => '150.00',
-                'description' => 'Minimum bill amount even if consumption is low',
+                'description' => 'Minimum charge that covers the first 10 cu.m of consumption',
                 'type' => 'currency',
+            ],
+            [
+                'key' => 'base_charge_covers_cubic',
+                'value' => '10',
+                'description' => 'Number of cubic meters covered by the minimum charge',
+                'type' => 'number',
             ],
             [
                 'key' => 'penalty_fee',
@@ -49,7 +56,7 @@ class AppSettingSeeder extends Seeder
         ];
 
         foreach ($settings as $setting) {
-            AppSetting::firstOrCreate(['key' => $setting['key']], $setting);
+            AppSetting::updateOrCreate(['key' => $setting['key']], $setting);
         }
     }
 }
