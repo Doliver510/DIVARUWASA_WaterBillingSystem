@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ConsumerController;
+use App\Http\Controllers\MaintenanceRequestController;
 use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
@@ -33,6 +34,15 @@ Route::middleware('auth')->group(function () {
 
     // Consumers Management (Admin only, modals for create/edit)
     Route::resource('consumers', ConsumerController::class)->except(['create', 'edit']);
+    // Maintenance Requests (All authenticated users, with role-based filtering)
+    Route::resource('maintenance-requests', MaintenanceRequestController::class)->except(['edit', 'update', 'destroy']);
+    Route::patch('/maintenance-requests/{maintenance_request}/status', [MaintenanceRequestController::class, 'updateStatus'])
+        ->name('maintenance-requests.update-status');
+    Route::post('/maintenance-requests/{maintenance_request}/materials', [MaintenanceRequestController::class, 'addMaterial'])
+        ->name('maintenance-requests.add-material');
+    Route::delete('/maintenance-requests/{maintenance_request}/materials/{material}', [MaintenanceRequestController::class, 'removeMaterial'])
+        ->name('maintenance-requests.remove-material');
+
     // Meter Readings (Admin, Meter Reader)
     Route::resource('meter-readings', MeterReadingController::class)->except(['show', 'create', 'edit']);
     Route::get('/meter-readings/previous/{consumer}', [MeterReadingController::class, 'getPreviousReading'])

@@ -117,14 +117,14 @@
                 {{-- Maintenance Menu --}}
                 @if(in_array(Auth::user()->role?->slug, ['admin', 'maintenance-staff']))
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#navbar-maintenance" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle {{ request()->routeIs('maintenance-requests.*') || request()->routeIs('materials.*') ? 'active' : '' }}" href="#navbar-maintenance" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="{{ request()->routeIs('maintenance-requests.*') || request()->routeIs('materials.*') ? 'true' : 'false' }}">
                         <span class="nav-link-icon d-inline-block">
                             <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 10h3v-3l-3.5 -3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1 -3 3l-6 -6a6 6 0 0 1 -8 -8l3.5 3.5" /></svg>
                         </span>
                         <span class="nav-link-title">{{ __('Maintenance') }}</span>
                     </a>
-                    <div class="dropdown-menu">
-                        <a class="dropdown-item" href="#">
+                    <div class="dropdown-menu {{ request()->routeIs('maintenance-requests.*') || request()->routeIs('materials.*') ? 'show' : '' }}">
+                        <a class="dropdown-item {{ request()->routeIs('maintenance-requests.*') ? 'active' : '' }}" href="{{ route('maintenance-requests.index') }}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="icon dropdown-item-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2" /><path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z" /><path d="M9 12l.01 0" /><path d="M13 12l2 0" /><path d="M9 16l.01 0" /><path d="M13 16l2 0" /></svg>
                             {{ __('Requests') }}
                         </a>

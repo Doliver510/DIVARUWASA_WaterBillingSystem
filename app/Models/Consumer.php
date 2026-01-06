@@ -21,6 +21,14 @@ class Consumer extends Model
     }
 
     /**
+     * Get the maintenance requests for this consumer.
+     */
+    public function maintenanceRequests(): HasMany
+    {
+        return $this->hasMany(MaintenanceRequest::class);
+    }
+
+    /**
      * Get the meter readings for this consumer.
      */
     public function meterReadings(): HasMany
