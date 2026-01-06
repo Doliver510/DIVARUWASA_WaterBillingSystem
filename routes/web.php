@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ConsumerController;
 use App\Http\Controllers\MaintenanceRequestController;
+use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
@@ -34,6 +35,11 @@ Route::middleware('auth')->group(function () {
 
     // Consumers Management (Admin only, modals for create/edit)
     Route::resource('consumers', ConsumerController::class)->except(['create', 'edit']);
+
+    // Materials Management (Admin only)
+    Route::resource('materials', MaterialController::class)->except(['show', 'create', 'edit']);
+    Route::post('/materials/{material}/add-stock', [MaterialController::class, 'addStock'])->name('materials.add-stock');
+
     // Maintenance Requests (All authenticated users, with role-based filtering)
     Route::resource('maintenance-requests', MaintenanceRequestController::class)->except(['edit', 'update', 'destroy']);
     Route::patch('/maintenance-requests/{maintenance_request}/status', [MaintenanceRequestController::class, 'updateStatus'])
