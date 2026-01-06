@@ -84,7 +84,7 @@ class WaterRateBracket extends Model
      * Get a breakdown of charges for display on bills/receipts.
      *
      * @param  int  $consumption  Total cubic meters consumed
-     * @return array Array with base charge and excess breakdown
+     * @return array Array with base charge and tiers breakdown
      */
     public static function getChargeBreakdown(int $consumption): array
     {
@@ -93,10 +93,9 @@ class WaterRateBracket extends Model
 
         $breakdown = [
             'base_charge' => $baseCharge,
-            'base_covers_cubic' => $baseCoversCubic,
+            'base_covers' => $baseCoversCubic,
             'consumption' => $consumption,
-            'excess_cubic' => max(0, $consumption - $baseCoversCubic),
-            'excess_charges' => [],
+            'tiers' => [],
             'total' => $baseCharge,
         ];
 
@@ -120,11 +119,12 @@ class WaterRateBracket extends Model
 
             if ($cubicsInBracket > 0) {
                 $subtotal = $cubicsInBracket * (float) $bracket->rate_per_cubic;
-                $breakdown['excess_charges'][] = [
-                    'range' => $bracket->min_cubic.'-'.($bracket->max_cubic ?? '∞'),
-                    'cubic_meters' => $cubicsInBracket,
+                $maxLabel = $bracket->max_cubic ?? '∞';
+                $breakdown['tiers'][] = [
+                    'range' => "{$bracket->min_cubic}-{$maxLabel} cu.m",
+                    'units' => $cubicsInBracket,
                     'rate' => (float) $bracket->rate_per_cubic,
-                    'subtotal' => $subtotal,
+                    'amount' => $subtotal,
                 ];
                 $breakdown['total'] += $subtotal;
                 $excessCubic -= $cubicsInBracket;
