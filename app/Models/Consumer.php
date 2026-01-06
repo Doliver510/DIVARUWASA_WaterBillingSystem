@@ -29,6 +29,14 @@ class Consumer extends Model
     }
 
     /**
+     * Get the bills for this consumer.
+     */
+    public function bills(): HasMany
+    {
+        return $this->hasMany(Bill::class);
+    }
+
+    /**
      * Get the latest meter reading value.
      */
     public function getLatestReadingAttribute(): int

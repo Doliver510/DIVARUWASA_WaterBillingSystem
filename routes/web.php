@@ -38,6 +38,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/meter-readings/previous/{consumer}', [MeterReadingController::class, 'getPreviousReading'])
         ->name('meter-readings.previous');
 
+    // Bills Management
+    Route::get('/bills', [App\Http\Controllers\BillController::class, 'index'])->name('bills.index');
+    Route::get('/bills/{bill}', [App\Http\Controllers\BillController::class, 'show'])->name('bills.show');
+    Route::get('/bills/{bill}/print', [App\Http\Controllers\BillController::class, 'print'])->name('bills.print');
 });
 
 require __DIR__.'/auth.php';
