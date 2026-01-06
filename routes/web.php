@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ConsumerController;
+use App\Http\Controllers\MeterReadingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
@@ -32,6 +33,11 @@ Route::middleware('auth')->group(function () {
 
     // Consumers Management (Admin only, modals for create/edit)
     Route::resource('consumers', ConsumerController::class)->except(['create', 'edit']);
+    // Meter Readings (Admin, Meter Reader)
+    Route::resource('meter-readings', MeterReadingController::class)->except(['show', 'create', 'edit']);
+    Route::get('/meter-readings/previous/{consumer}', [MeterReadingController::class, 'getPreviousReading'])
+        ->name('meter-readings.previous');
+
 });
 
 require __DIR__.'/auth.php';
