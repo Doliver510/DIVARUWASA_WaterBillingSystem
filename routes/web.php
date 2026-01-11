@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BlockController;
 use App\Http\Controllers\ConsumerController;
 use App\Http\Controllers\MaintenanceRequestController;
 use App\Http\Controllers\MaterialController;
@@ -29,6 +30,16 @@ Route::middleware('auth')->group(function () {
 
     // Water Rate Brackets (Admin only)
     Route::resource('rate-brackets', WaterRateBracketController::class)->except(['show', 'create', 'edit']);
+
+    // Block Management (Admin only)
+    Route::get('/settings/blocks', [BlockController::class, 'index'])->name('settings.blocks');
+    Route::post('/settings/blocks', [BlockController::class, 'store'])->name('settings.blocks.store');
+    Route::patch('/settings/blocks/{block}/toggle', [BlockController::class, 'toggleStatus'])->name('settings.blocks.toggle');
+    Route::delete('/settings/blocks/{block}', [BlockController::class, 'destroy'])->name('settings.blocks.destroy');
+
+    // Block Assignments (Admin only)
+    Route::get('/settings/block-assignments', [BlockController::class, 'assignments'])->name('settings.block-assignments');
+    Route::put('/settings/block-assignments/{user}', [BlockController::class, 'updateAssignments'])->name('settings.block-assignments.update');
 
     // Users Management (Admin only - Staff users, modals for create/edit)
     Route::resource('users', UserController::class)->except(['show', 'create', 'edit']);

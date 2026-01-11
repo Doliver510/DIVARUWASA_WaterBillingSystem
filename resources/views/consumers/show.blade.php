@@ -48,7 +48,13 @@
                         <dt class="col-5">{{ __('Last Name') }}:</dt>
                         <dd class="col-7">{{ $consumer->user->last_name }}</dd>
 
-                        <dt class="col-5">{{ __('Address') }}:</dt>
+                        <dt class="col-5">{{ __('Block') }}:</dt>
+                        <dd class="col-7">{{ $consumer->block?->name ?? 'N/A' }}</dd>
+
+                        <dt class="col-5">{{ __('Lot Number') }}:</dt>
+                        <dd class="col-7">{{ $consumer->lot_number ?? 'N/A' }}</dd>
+
+                        <dt class="col-5">{{ __('Full Address') }}:</dt>
                         <dd class="col-7">{{ $consumer->address }}</dd>
 
                         <dt class="col-5">{{ __('Status') }}:</dt>

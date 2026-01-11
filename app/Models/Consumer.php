@@ -11,13 +11,49 @@ class Consumer extends Model
     protected $fillable = [
         'user_id',
         'id_no',
-        'address',
+        'block_id',
+        'lot_number',
         'status',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'lot_number' => 'integer',
+        ];
+    }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the block this consumer belongs to.
+     */
+    public function block(): BelongsTo
+    {
+        return $this->belongsTo(Block::class);
+    }
+
+    /**
+     * Get the full address (Block X, Lot Y).
+     */
+    public function getAddressAttribute(): string
+    {
+        if (! $this->block) {
+            return 'No address';
+        }
+
+        return $this->block->name.', Lot '.$this->lot_number;
+    }
+
+    /**
+     * Get the full name via the user relationship.
+     */
+    public function getFullNameAttribute(): string
+    {
+        return $this->user?->full_name ?? 'Unknown';
     }
 
     /**

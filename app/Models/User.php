@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -90,5 +91,22 @@ class User extends Authenticatable
     public function consumer(): HasOne
     {
         return $this->hasOne(Consumer::class);
+    }
+
+    /**
+     * Get the blocks assigned to this user (for meter readers).
+     */
+    public function assignedBlocks(): BelongsToMany
+    {
+        return $this->belongsToMany(Block::class, 'block_assignments')
+            ->withTimestamps();
+    }
+
+    /**
+     * Check if this user is a meter reader.
+     */
+    public function isMeterReader(): bool
+    {
+        return $this->role?->slug === 'meter-reader';
     }
 }

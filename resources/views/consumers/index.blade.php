@@ -37,6 +37,44 @@
                 </div>
             @endif
 
+            {{-- Filter Card --}}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('Search') }}</label>
+                            <input type="text" name="search" class="form-control" placeholder="Name or ID No." value="{{ request('search') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('Block') }}</label>
+                            <select name="block_id" class="form-select">
+                                <option value="">{{ __('All Blocks') }}</option>
+                                @foreach($blocks as $block)
+                                    <option value="{{ $block->id }}" {{ request('block_id') == $block->id ? 'selected' : '' }}>
+                                        {{ $block->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">{{ __('Status') }}</label>
+                            <select name="status" class="form-select">
+                                <option value="">{{ __('All Statuses') }}</option>
+                                <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>{{ __('Active') }}</option>
+                                <option value="disconnected" {{ request('status') === 'disconnected' ? 'selected' : '' }}>{{ __('Disconnected') }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg>
+                                {{ __('Filter') }}
+                            </button>
+                            <a href="{{ route('consumers.index') }}" class="btn btn-secondary">{{ __('Clear') }}</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">{{ __('Consumer Accounts') }}</h3>
@@ -73,10 +111,9 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="text-secondary" style="max-width: 250px;">
-                                        <span class="text-truncate d-inline-block" style="max-width: 230px;" title="{{ $consumer->address }}">
-                                            {{ $consumer->address }}
-                                        </span>
+                                    <td>
+                                        <span class="badge bg-blue-lt me-1">{{ $consumer->block?->name ?? 'N/A' }}</span>
+                                        <span class="text-muted">Lot {{ $consumer->lot_number }}</span>
                                     </td>
                                     <td>
                                         @if($consumer->status === 'active')
@@ -109,7 +146,7 @@
                                 <tr>
                                     <td colspan="5" class="text-center text-secondary py-4">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-lg mb-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /><path d="M21 21v-2a4 4 0 0 0 -3 -3.85" /></svg>
-                                        <p class="mb-0">{{ __('No consumers found. Add your first consumer!') }}</p>
+                                        <p class="mb-0">{{ __('No consumers found.') }}</p>
                                     </td>
                                 </tr>
                             @endforelse
@@ -148,10 +185,23 @@
                                     <small class="form-hint">{{ __('Leave blank to auto-generate. Next: ') }}{{ $nextIdNo }}</small>
                                 </div>
                             </div>
-                            <div class="col-lg-8">
+                            <div class="col-lg-4">
                                 <div class="mb-3">
-                                    <label class="form-label required">{{ __('Address') }}</label>
-                                    <input type="text" name="address" class="form-control" value="{{ old('address') }}" required placeholder="Complete address">
+                                    <label class="form-label required">{{ __('Block') }}</label>
+                                    <select name="block_id" class="form-select" required>
+                                        <option value="">{{ __('Select Block') }}</option>
+                                        @foreach($blocks as $block)
+                                            <option value="{{ $block->id }}" {{ old('block_id') == $block->id ? 'selected' : '' }}>
+                                                {{ $block->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="mb-3">
+                                    <label class="form-label required">{{ __('Lot Number') }}</label>
+                                    <input type="number" name="lot_number" class="form-control" value="{{ old('lot_number') }}" required min="1" step="1" placeholder="e.g., 12">
                                 </div>
                             </div>
                         </div>
@@ -256,10 +306,23 @@
                                         <input type="text" name="id_no" class="form-control" value="{{ old('id_no', $consumer->id_no) }}" required pattern="[0-9]*" inputmode="numeric">
                                     </div>
                                 </div>
-                                <div class="col-lg-8">
+                                <div class="col-lg-4">
                                     <div class="mb-3">
-                                        <label class="form-label required">{{ __('Address') }}</label>
-                                        <input type="text" name="address" class="form-control" value="{{ old('address', $consumer->address) }}" required>
+                                        <label class="form-label required">{{ __('Block') }}</label>
+                                        <select name="block_id" class="form-select" required>
+                                            <option value="">{{ __('Select Block') }}</option>
+                                            @foreach($blocks as $block)
+                                                <option value="{{ $block->id }}" {{ old('block_id', $consumer->block_id) == $block->id ? 'selected' : '' }}>
+                                                    {{ $block->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="mb-3">
+                                        <label class="form-label required">{{ __('Lot Number') }}</label>
+                                        <input type="number" name="lot_number" class="form-control" value="{{ old('lot_number', $consumer->lot_number) }}" required min="1" step="1">
                                     </div>
                                 </div>
                             </div>

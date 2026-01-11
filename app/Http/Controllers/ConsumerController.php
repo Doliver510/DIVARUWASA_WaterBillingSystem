@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Block;
 use App\Models\Consumer;
 use App\Models\Role;
 use App\Models\User;
@@ -14,18 +15,43 @@ class ConsumerController extends Controller
     /**
      * Display a listing of consumers.
      */
-    public function index()
+    public function index(Request $request)
     {
         if (auth()->user()->role->slug !== 'admin') {
             abort(403);
         }
 
-        $consumers = Consumer::with('user')->latest()->paginate(15);
+        $query = Consumer::with(['user', 'block'])->latest();
 
-        // Generate next ID for the form
+        // Filter by block
+        if ($request->filled('block_id')) {
+            $query->where('block_id', $request->block_id);
+        }
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Search by name or ID
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('id_no', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $consumers = $query->paginate(15)->withQueryString();
+
+        // Get data for filters and form
+        $blocks = Block::active()->ordered()->get();
         $nextIdNo = Consumer::generateNextIdNo();
 
-        return view('consumers.index', compact('consumers', 'nextIdNo'));
+        return view('consumers.index', compact('consumers', 'blocks', 'nextIdNo'));
     }
 
     /**
@@ -43,7 +69,8 @@ class ConsumerController extends Controller
             'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
             'id_no' => ['nullable', 'string', 'max:10', 'unique:consumers', 'regex:/^[0-9]+$/'],
-            'address' => ['required', 'string', 'max:500'],
+            'block_id' => ['required', 'exists:blocks,id'],
+            'lot_number' => ['required', 'integer', 'min:1'],
             'status' => ['required', 'in:active,disconnected'],
         ]);
 
@@ -71,7 +98,8 @@ class ConsumerController extends Controller
             Consumer::create([
                 'user_id' => $user->id,
                 'id_no' => $idNo,
-                'address' => $validated['address'],
+                'block_id' => $validated['block_id'],
+                'lot_number' => $validated['lot_number'],
                 'status' => $validated['status'],
             ]);
         });
@@ -99,7 +127,7 @@ class ConsumerController extends Controller
             abort(403);
         }
 
-        $consumer->load('user');
+        $consumer->load(['user', 'block']);
 
         return view('consumers.show', compact('consumer'));
     }
@@ -119,7 +147,8 @@ class ConsumerController extends Controller
             'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$consumer->user_id],
             'id_no' => ['required', 'string', 'max:10', 'unique:consumers,id_no,'.$consumer->id, 'regex:/^[0-9]+$/'],
-            'address' => ['required', 'string', 'max:500'],
+            'block_id' => ['required', 'exists:blocks,id'],
+            'lot_number' => ['required', 'integer', 'min:1'],
             'status' => ['required', 'in:active,disconnected'],
             'reset_password' => ['nullable', 'boolean'],
         ]);
@@ -152,7 +181,8 @@ class ConsumerController extends Controller
 
             $consumer->update([
                 'id_no' => $idNo,
-                'address' => $validated['address'],
+                'block_id' => $validated['block_id'],
+                'lot_number' => $validated['lot_number'],
                 'status' => $validated['status'],
             ]);
         });
