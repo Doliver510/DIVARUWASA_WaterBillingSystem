@@ -8,18 +8,16 @@ use Illuminate\Database\Seeder;
 class BlockSeeder extends Seeder
 {
     /**
-     * Seed the default blocks (0-10).
+     * Seed the default blocks (Block 0 through Block 10).
      */
     public function run(): void
     {
         $blocks = [];
 
-        // Create blocks 0 through 10
+        // Create Block 0 through Block 10
         for ($i = 0; $i <= 10; $i++) {
             $blocks[] = [
-                'block_number' => $i,
-                'name' => Block::generateName($i),
-                'is_active' => true,
+                'name' => "Block {$i}",
                 'created_at' => now(),
                 'updated_at' => now(),
             ];

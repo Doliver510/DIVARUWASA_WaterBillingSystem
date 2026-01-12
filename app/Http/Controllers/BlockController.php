@@ -14,9 +14,8 @@ class BlockController extends Controller
     public function index()
     {
         $blocks = Block::ordered()->withCount('consumers')->get();
-        $meterReaders = User::whereHas('role', fn ($q) => $q->where('slug', 'meter-reader'))->get();
 
-        return view('settings.blocks', compact('blocks', 'meterReaders'));
+        return view('settings.blocks', compact('blocks'));
     }
 
     /**
@@ -25,30 +24,15 @@ class BlockController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'block_number' => 'required|integer|min:0|unique:blocks,block_number',
+            'name' => 'required|string|max:100|unique:blocks,name',
         ]);
 
         Block::create([
-            'block_number' => $validated['block_number'],
-            'name' => Block::generateName($validated['block_number']),
-            'is_active' => true,
+            'name' => $validated['name'],
         ]);
 
         return redirect()->route('settings.blocks')
             ->with('success', 'Block added successfully.');
-    }
-
-    /**
-     * Toggle block active status.
-     */
-    public function toggleStatus(Block $block)
-    {
-        $block->update(['is_active' => ! $block->is_active]);
-
-        $status = $block->is_active ? 'activated' : 'deactivated';
-
-        return redirect()->route('settings.blocks')
-            ->with('success', "Block {$block->name} {$status}.");
     }
 
     /**
@@ -58,7 +42,7 @@ class BlockController extends Controller
     {
         if ($block->consumers()->count() > 0) {
             return redirect()->route('settings.blocks')
-                ->with('error', 'Cannot delete block with existing consumers. Deactivate it instead.');
+                ->with('error', 'Cannot delete block with existing consumers.');
         }
 
         $block->delete();
@@ -72,7 +56,7 @@ class BlockController extends Controller
      */
     public function assignments()
     {
-        $blocks = Block::active()->ordered()->with('meterReaders')->get();
+        $blocks = Block::ordered()->with('meterReaders')->get();
         $meterReaders = User::whereHas('role', fn ($q) => $q->where('slug', 'meter-reader'))
             ->with('assignedBlocks')
             ->get();

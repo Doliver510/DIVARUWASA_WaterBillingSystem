@@ -12,18 +12,8 @@ class Block extends Model
     use HasFactory;
 
     protected $fillable = [
-        'block_number',
         'name',
-        'is_active',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'block_number' => 'integer',
-            'is_active' => 'boolean',
-        ];
-    }
 
     /**
      * Get consumers in this block.
@@ -43,26 +33,10 @@ class Block extends Model
     }
 
     /**
-     * Scope to get only active blocks.
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    /**
-     * Scope to order by block number.
+     * Scope to order by name.
      */
     public function scopeOrdered($query)
     {
-        return $query->orderBy('block_number');
-    }
-
-    /**
-     * Generate name from block number.
-     */
-    public static function generateName(int $blockNumber): string
-    {
-        return "Block {$blockNumber}";
+        return $query->orderBy('name');
     }
 }

@@ -13,9 +13,7 @@ return new class extends Migration
     {
         Schema::create('blocks', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('block_number')->unique();
-            $table->string('name'); // e.g., "Block 5"
-            $table->boolean('is_active')->default(true);
+            $table->string('name')->unique(); // e.g., "Block 5", "Sitio Malabon"
             $table->timestamps();
         });
     }

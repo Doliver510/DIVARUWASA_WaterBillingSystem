@@ -107,7 +107,7 @@
                             
                             @if($blocks->isEmpty())
                                 <div class="alert alert-warning">
-                                    {{ __('No active blocks available. Please add blocks first.') }}
+                                    {{ __('No blocks available. Please add blocks first.') }}
                                 </div>
                             @else
                                 <div class="row">

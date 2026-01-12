@@ -34,7 +34,6 @@ Route::middleware('auth')->group(function () {
     // Block Management (Admin only)
     Route::get('/settings/blocks', [BlockController::class, 'index'])->name('settings.blocks');
     Route::post('/settings/blocks', [BlockController::class, 'store'])->name('settings.blocks.store');
-    Route::patch('/settings/blocks/{block}/toggle', [BlockController::class, 'toggleStatus'])->name('settings.blocks.toggle');
     Route::delete('/settings/blocks/{block}', [BlockController::class, 'destroy'])->name('settings.blocks.destroy');
 
     // Block Assignments (Admin only)
