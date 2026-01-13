@@ -93,6 +93,10 @@ Route::middleware('auth')->group(function () {
         // Consumption Report (Admin only)
         Route::get('/consumption', [App\Http\Controllers\ReportController::class, 'consumption'])->name('consumption');
         Route::get('/consumption/export/{format}', [App\Http\Controllers\ReportController::class, 'consumptionExport'])->name('consumption.export');
+
+        // Consumer Masterlist (Admin only)
+        Route::get('/consumer-masterlist', [App\Http\Controllers\ReportController::class, 'consumerMasterlist'])->name('consumer-masterlist');
+        Route::get('/consumer-masterlist/export/{format}', [App\Http\Controllers\ReportController::class, 'consumerMasterlistExport'])->name('consumer-masterlist.export');
     });
 });
 
