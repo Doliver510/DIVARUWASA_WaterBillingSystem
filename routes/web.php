@@ -68,6 +68,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/bills', [App\Http\Controllers\BillController::class, 'index'])->name('bills.index');
     Route::get('/bills/{bill}', [App\Http\Controllers\BillController::class, 'show'])->name('bills.show');
     Route::get('/bills/{bill}/print', [App\Http\Controllers\BillController::class, 'print'])->name('bills.print');
+
+    // Payments Management (Admin & Cashier)
+    Route::get('/payments', [App\Http\Controllers\PaymentController::class, 'index'])->name('payments.index');
+    Route::post('/bills/{bill}/payments', [App\Http\Controllers\PaymentController::class, 'store'])->name('payments.store');
+    Route::get('/payments/{payment}', [App\Http\Controllers\PaymentController::class, 'show'])->name('payments.show');
+    Route::get('/payments/{payment}/receipt', [App\Http\Controllers\PaymentController::class, 'receipt'])->name('payments.receipt');
+    Route::get('/payments-summary', [App\Http\Controllers\PaymentController::class, 'dailySummary'])->name('payments.daily-summary');
 });
 
 require __DIR__.'/auth.php';

@@ -87,24 +87,24 @@
                 {{-- Cashier Menu --}}
                 @if(in_array(Auth::user()->role?->slug, ['admin', 'cashier']))
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle {{ request()->routeIs('bills.*') ? 'active' : '' }}" href="#navbar-cashier" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="{{ request()->routeIs('bills.*') ? 'true' : 'false' }}">
+                    <a class="nav-link dropdown-toggle {{ request()->routeIs('bills.*') || request()->routeIs('payments.*') ? 'active' : '' }}" href="#navbar-cashier" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="{{ request()->routeIs('bills.*') || request()->routeIs('payments.*') ? 'true' : 'false' }}">
                         <span class="nav-link-icon d-inline-block">
                             <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M16.7 8a3 3 0 0 0 -2.7 -2h-4a3 3 0 0 0 0 6h4a3 3 0 0 1 0 6h-4a3 3 0 0 1 -2.7 -2" /><path d="M12 3v3m0 12v3" /></svg>
                         </span>
                         <span class="nav-link-title">{{ __('Cashier') }}</span>
                     </a>
-                    <div class="dropdown-menu {{ request()->routeIs('bills.*') ? 'show' : '' }}">
+                    <div class="dropdown-menu {{ request()->routeIs('bills.*') || request()->routeIs('payments.*') ? 'show' : '' }}">
                         <a class="dropdown-item {{ request()->routeIs('bills.*') ? 'active' : '' }}" href="{{ route('bills.index') }}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="icon dropdown-item-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" /><path d="M9 17h6" /><path d="M9 13h6" /></svg>
                             {{ __('Bills') }}
                         </a>
-                        <a class="dropdown-item" href="#">
+                        <a class="dropdown-item {{ request()->routeIs('payments.index') || request()->routeIs('payments.show') ? 'active' : '' }}" href="{{ route('payments.index') }}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="icon dropdown-item-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg>
                             {{ __('Payments') }}
                         </a>
-                        <a class="dropdown-item" href="#">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="icon dropdown-item-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2" /><path d="M14 8h-2.5a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-2.5m2 0v1.5m0 -9v1.5" /></svg>
-                            {{ __('Receipts') }}
+                        <a class="dropdown-item {{ request()->routeIs('payments.daily-summary') ? 'active' : '' }}" href="{{ route('payments.daily-summary') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon dropdown-item-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2" /><path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z" /><path d="M9 17v-5" /><path d="M12 17v-1" /><path d="M15 17v-3" /></svg>
+                            {{ __('Daily Summary') }}
                         </a>
                     </div>
                 </li>
@@ -166,28 +166,38 @@
                 </li>
                 @endif
 
-                {{-- Reports (Admin only) --}}
-                @if(Auth::user()->role?->slug === 'admin')
+                {{-- Reports (Admin & Cashier for some) --}}
+                @if(in_array(Auth::user()->role?->slug, ['admin', 'cashier']))
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#navbar-reports" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="#navbar-reports" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="{{ request()->routeIs('reports.*') ? 'true' : 'false' }}">
                         <span class="nav-link-icon d-inline-block">
                             <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2" /><path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z" /><path d="M9 17v-5" /><path d="M12 17v-1" /><path d="M15 17v-3" /></svg>
                         </span>
                         <span class="nav-link-title">{{ __('Reports') }}</span>
                     </a>
-                    <div class="dropdown-menu">
-                        <a class="dropdown-item" href="#">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="icon dropdown-item-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 14l6 -6" /><circle cx="11" cy="16" r="1" /><circle cx="13" cy="8" r="1" /><path d="M12 3c7.2 0 9 1.8 9 9s-1.8 9 -9 9s-9 -1.8 -9 -9s1.8 -9 9 -9z" /></svg>
+                    <div class="dropdown-menu {{ request()->routeIs('reports.*') ? 'show' : '' }}">
+                        <a class="dropdown-item {{ request()->routeIs('reports.collections') ? 'active' : '' }}" href="{{ route('reports.collections') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon dropdown-item-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg>
                             {{ __('Collections') }}
                         </a>
-                        <a class="dropdown-item" href="#">
+                        <a class="dropdown-item {{ request()->routeIs('reports.billing-summary') ? 'active' : '' }}" href="{{ route('reports.billing-summary') }}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="icon dropdown-item-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" /><path d="M9 17l0 -5" /><path d="M12 17l0 -1" /><path d="M15 17l0 -3" /></svg>
                             {{ __('Billing Summary') }}
                         </a>
-                        <a class="dropdown-item" href="#">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="icon dropdown-item-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 13l-1 9l-3 -4l-4 3l1 -9" /><path d="M17.625 9.625a2.625 2.625 0 1 0 -5.25 0a2.625 2.625 0 0 0 5.25 0z" /><path d="M15 3a6 6 0 0 1 6 6c0 2.861 -2.4 6.312 -6 9c-3.6 -2.688 -6 -6.139 -6 -9a6 6 0 0 1 6 -6z" /></svg>
+                        @if(Auth::user()->role?->slug === 'admin')
+                        <a class="dropdown-item {{ request()->routeIs('reports.arrears') ? 'active' : '' }}" href="{{ route('reports.arrears') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon dropdown-item-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
                             {{ __('Arrears') }}
                         </a>
+                        <a class="dropdown-item {{ request()->routeIs('reports.consumption') ? 'active' : '' }}" href="{{ route('reports.consumption') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon dropdown-item-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 3l5 5a7 7 0 1 1 -10 0l5 -5" /></svg>
+                            {{ __('Consumption') }}
+                        </a>
+                        <a class="dropdown-item {{ request()->routeIs('reports.consumer-masterlist') ? 'active' : '' }}" href="{{ route('reports.consumer-masterlist') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon dropdown-item-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /><path d="M21 21v-2a4 4 0 0 0 -3 -3.85" /></svg>
+                            {{ __('Consumer Masterlist') }}
+                        </a>
+                        @endif
                     </div>
                 </li>
                 @endif

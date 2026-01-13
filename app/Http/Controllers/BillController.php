@@ -84,7 +84,7 @@ class BillController extends Controller
             }
         }
 
-        $bill->load(['consumer.user', 'meterReading']);
+        $bill->load(['consumer.user', 'meterReading', 'payments.processedBy']);
 
         // Get charge breakdown for display
         $chargeBreakdown = WaterRateBracket::getChargeBreakdown($bill->consumption);
