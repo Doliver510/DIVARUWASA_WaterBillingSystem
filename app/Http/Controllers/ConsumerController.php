@@ -48,7 +48,7 @@ class ConsumerController extends Controller
         $consumers = $query->paginate(15)->withQueryString();
 
         // Get data for filters and form
-        $blocks = Block::active()->ordered()->get();
+        $blocks = Block::ordered()->get();
         $nextIdNo = Consumer::generateNextIdNo();
 
         return view('consumers.index', compact('consumers', 'blocks', 'nextIdNo'));
