@@ -75,6 +75,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/payments/{payment}', [App\Http\Controllers\PaymentController::class, 'show'])->name('payments.show');
     Route::get('/payments/{payment}/receipt', [App\Http\Controllers\PaymentController::class, 'receipt'])->name('payments.receipt');
     Route::get('/payments-summary', [App\Http\Controllers\PaymentController::class, 'dailySummary'])->name('payments.daily-summary');
+
+    // Reports (Admin & Cashier for bill-related, Admin only for others)
+    Route::prefix('reports')->name('reports.')->group(function () {
+        // Collections Report (Admin & Cashier)
+        Route::get('/collections', [App\Http\Controllers\ReportController::class, 'collections'])->name('collections');
+        Route::get('/collections/export/{format}', [App\Http\Controllers\ReportController::class, 'collectionsExport'])->name('collections.export');
+    });
 });
 
 require __DIR__.'/auth.php';
