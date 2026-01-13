@@ -85,6 +85,10 @@ Route::middleware('auth')->group(function () {
         // Billing Summary (Admin & Cashier)
         Route::get('/billing-summary', [App\Http\Controllers\ReportController::class, 'billingSummary'])->name('billing-summary');
         Route::get('/billing-summary/export/{format}', [App\Http\Controllers\ReportController::class, 'billingSummaryExport'])->name('billing-summary.export');
+
+        // Arrears Report (Admin only)
+        Route::get('/arrears', [App\Http\Controllers\ReportController::class, 'arrears'])->name('arrears');
+        Route::get('/arrears/export/{format}', [App\Http\Controllers\ReportController::class, 'arrearsExport'])->name('arrears.export');
     });
 });
 
