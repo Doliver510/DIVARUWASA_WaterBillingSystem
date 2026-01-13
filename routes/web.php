@@ -89,6 +89,10 @@ Route::middleware('auth')->group(function () {
         // Arrears Report (Admin only)
         Route::get('/arrears', [App\Http\Controllers\ReportController::class, 'arrears'])->name('arrears');
         Route::get('/arrears/export/{format}', [App\Http\Controllers\ReportController::class, 'arrearsExport'])->name('arrears.export');
+
+        // Consumption Report (Admin only)
+        Route::get('/consumption', [App\Http\Controllers\ReportController::class, 'consumption'])->name('consumption');
+        Route::get('/consumption/export/{format}', [App\Http\Controllers\ReportController::class, 'consumptionExport'])->name('consumption.export');
     });
 });
 
