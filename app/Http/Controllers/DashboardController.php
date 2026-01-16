@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Announcement;
 use App\Models\Bill;
 use App\Models\Consumer;
 use App\Models\MaintenanceRequest;
@@ -20,9 +21,13 @@ class DashboardController extends Controller
         $user = Auth::user();
         $role = $user->role->slug;
 
+        // Get announcements for this user's role
+        $announcements = Announcement::getCurrentForRole($role);
+
         $data = [
             'user' => $user,
             'role' => $role,
+            'announcements' => $announcements,
         ];
 
         // Admin Dashboard - Full overview

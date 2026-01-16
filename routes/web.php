@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\BlockController;
 use App\Http\Controllers\ConsumerController;
 use App\Http\Controllers\MaintenanceRequestController;
@@ -39,6 +40,10 @@ Route::middleware('auth')->group(function () {
     // Block Assignments (Admin only)
     Route::get('/settings/block-assignments', [BlockController::class, 'assignments'])->name('settings.block-assignments');
     Route::put('/settings/block-assignments/{user}', [BlockController::class, 'updateAssignments'])->name('settings.block-assignments.update');
+
+    // Announcements (Admin only)
+    Route::resource('announcements', AnnouncementController::class);
+    Route::patch('/announcements/{announcement}/toggle', [AnnouncementController::class, 'toggle'])->name('announcements.toggle');
 
     // Users Management (Admin only - Staff users, modals for create/edit)
     Route::resource('users', UserController::class)->except(['show', 'create', 'edit']);
