@@ -85,7 +85,7 @@
                                 <th>OR Number</th>
                                 <th>Date & Time</th>
                                 <th>Consumer</th>
-                                <th>Bill Period</th>
+                                <th>Payment For</th>
                                 <th class="text-end">Amount</th>
                                 <th>Processed By</th>
                                 <th class="w-1"></th>
@@ -105,7 +105,17 @@
                                         <div>{{ $payment->consumer->full_name }}</div>
                                         <small class="text-muted">ID: {{ $payment->consumer->id_no }}</small>
                                     </td>
-                                    <td>{{ $payment->bill->billing_period_label }}</td>
+                                    <td>
+                                        @if($payment->isBillPayment() && $payment->bill)
+                                            <span class="badge bg-blue-lt">Bill</span>
+                                            {{ $payment->bill->billing_period_label }}
+                                        @elseif($payment->isMaintenancePayment())
+                                            <span class="badge bg-orange-lt">Maintenance</span>
+                                            Request #{{ $payment->maintenance_request_id }}
+                                        @else
+                                            <span class="badge bg-secondary-lt">Payment</span>
+                                        @endif
+                                    </td>
                                     <td class="text-end fw-bold text-success">₱{{ number_format($payment->amount, 2) }}</td>
                                     <td>{{ $payment->processedBy->full_name }}</td>
                                     <td>

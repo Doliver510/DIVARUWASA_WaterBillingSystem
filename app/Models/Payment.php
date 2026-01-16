@@ -13,7 +13,9 @@ class Payment extends Model
 
     protected $fillable = [
         'or_number',
+        'payment_type',
         'bill_id',
+        'maintenance_request_id',
         'consumer_id',
         'processed_by',
         'amount',
@@ -23,6 +25,13 @@ class Payment extends Model
         'remarks',
         'paid_at',
     ];
+
+    /**
+     * Payment type constants.
+     */
+    public const TYPE_BILL = 'bill';
+
+    public const TYPE_MAINTENANCE = 'maintenance';
 
     protected function casts(): array
     {
@@ -35,11 +44,19 @@ class Payment extends Model
     }
 
     /**
-     * Get the bill this payment belongs to.
+     * Get the bill this payment belongs to (for bill payments).
      */
     public function bill(): BelongsTo
     {
         return $this->belongsTo(Bill::class);
+    }
+
+    /**
+     * Get the maintenance request (for maintenance payments).
+     */
+    public function maintenanceRequest(): BelongsTo
+    {
+        return $this->belongsTo(MaintenanceRequest::class);
     }
 
     /**
@@ -56,6 +73,38 @@ class Payment extends Model
     public function processedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'processed_by');
+    }
+
+    /**
+     * Check if this is a bill payment.
+     */
+    public function isBillPayment(): bool
+    {
+        return $this->payment_type === self::TYPE_BILL;
+    }
+
+    /**
+     * Check if this is a maintenance payment.
+     */
+    public function isMaintenancePayment(): bool
+    {
+        return $this->payment_type === self::TYPE_MAINTENANCE;
+    }
+
+    /**
+     * Get a description of what this payment is for.
+     */
+    public function getPaymentDescriptionAttribute(): string
+    {
+        if ($this->isBillPayment() && $this->bill) {
+            return 'Water Bill - '.$this->bill->billing_period_label;
+        }
+
+        if ($this->isMaintenancePayment() && $this->maintenanceRequest) {
+            return 'Maintenance Materials - Request #'.$this->maintenanceRequest->id;
+        }
+
+        return 'Payment';
     }
 
     /**

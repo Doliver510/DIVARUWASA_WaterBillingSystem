@@ -314,8 +314,16 @@
                 <div class="value">{{ $payment->consumer->id_no }}</div>
             </div>
             <div class="info-item">
-                <div class="label">Billing Period</div>
-                <div class="value">{{ $payment->bill->billing_period_label }}</div>
+                <div class="label">Payment For</div>
+                <div class="value">
+                    @if($payment->isBillPayment() && $payment->bill)
+                        Water Bill - {{ $payment->bill->billing_period_label }}
+                    @elseif($payment->isMaintenancePayment())
+                        Maintenance Materials
+                    @else
+                        Payment
+                    @endif
+                </div>
             </div>
             <div class="info-item full-width">
                 <div class="label">Consumer Name</div>
@@ -327,6 +335,33 @@
             </div>
         </div>
 
+        {{-- Maintenance Materials Detail (for maintenance payments) --}}
+        @if($payment->isMaintenancePayment() && $payment->maintenanceRequest)
+            <div style="margin: 15px 0; padding: 10px; background: #f9f9f9; border: 1px solid #ddd;">
+                <div style="font-size: 10px; color: #666; text-transform: uppercase; margin-bottom: 8px;">Materials Used - Request #{{ $payment->maintenanceRequest->id }}</div>
+                <table style="width: 100%; font-size: 10px; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #ccc;">
+                            <th style="text-align: left; padding: 4px;">Material</th>
+                            <th style="text-align: center; padding: 4px;">Qty</th>
+                            <th style="text-align: right; padding: 4px;">Unit Price</th>
+                            <th style="text-align: right; padding: 4px;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($payment->maintenanceRequest->maintenanceMaterials as $mm)
+                            <tr style="border-bottom: 1px dotted #ddd;">
+                                <td style="padding: 4px;">{{ $mm->material->name }}</td>
+                                <td style="text-align: center; padding: 4px;">{{ $mm->quantity }} {{ $mm->material->unit }}</td>
+                                <td style="text-align: right; padding: 4px;">₱{{ number_format($mm->unit_price, 2) }}</td>
+                                <td style="text-align: right; padding: 4px;">₱{{ number_format($mm->subtotal, 2) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+
         {{-- Amount Box --}}
         <div class="amount-box">
             <div class="label">Amount Received</div>
@@ -334,21 +369,35 @@
             <div class="payment-method">{{ strtoupper($payment->payment_method) }} PAYMENT</div>
         </div>
 
-        {{-- Balance Info --}}
-        <div class="balance-info">
-            <div class="item">
-                <div class="label">Total Bill</div>
-                <div class="value">₱{{ number_format($payment->bill->total_amount, 2) }}</div>
+        {{-- Balance Info (for bill payments) --}}
+        @if($payment->isBillPayment() && $payment->bill)
+            <div class="balance-info">
+                <div class="item">
+                    <div class="label">Total Bill</div>
+                    <div class="value">₱{{ number_format($payment->bill->total_amount, 2) }}</div>
+                </div>
+                <div class="item">
+                    <div class="label">Before Payment</div>
+                    <div class="value">₱{{ number_format($payment->balance_before, 2) }}</div>
+                </div>
+                <div class="item {{ $payment->balance_after <= 0 ? 'paid' : 'remaining' }}">
+                    <div class="label">Remaining Balance</div>
+                    <div class="value">₱{{ number_format($payment->balance_after, 2) }}</div>
+                </div>
             </div>
-            <div class="item">
-                <div class="label">Before Payment</div>
-                <div class="value">₱{{ number_format($payment->balance_before, 2) }}</div>
+        @else
+            {{-- For maintenance payments - simpler display --}}
+            <div class="balance-info">
+                <div class="item paid">
+                    <div class="label">Total Amount</div>
+                    <div class="value">₱{{ number_format($payment->amount, 2) }}</div>
+                </div>
+                <div class="item paid">
+                    <div class="label">Status</div>
+                    <div class="value">FULLY PAID</div>
+                </div>
             </div>
-            <div class="item {{ $payment->balance_after <= 0 ? 'paid' : 'remaining' }}">
-                <div class="label">Remaining Balance</div>
-                <div class="value">₱{{ number_format($payment->balance_after, 2) }}</div>
-            </div>
-        </div>
+        @endif
 
         @if($payment->remarks)
             <div class="info-item full-width" style="margin-top: 10px;">

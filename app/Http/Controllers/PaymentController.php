@@ -28,7 +28,7 @@ class PaymentController extends Controller
             abort(403);
         }
 
-        $query = Payment::with(['bill.consumer.user', 'processedBy']);
+        $query = Payment::with(['bill', 'maintenanceRequest', 'consumer.user', 'processedBy']);
 
         // Filter by date
         if ($request->filled('date')) {
@@ -96,7 +96,9 @@ class PaymentController extends Controller
             // Create payment record
             $payment = Payment::create([
                 'or_number' => Payment::generateOrNumber(),
+                'payment_type' => Payment::TYPE_BILL,
                 'bill_id' => $bill->id,
+                'maintenance_request_id' => null,
                 'consumer_id' => $bill->consumer_id,
                 'processed_by' => Auth::id(),
                 'amount' => $amount,
@@ -156,7 +158,14 @@ class PaymentController extends Controller
             abort(403);
         }
 
-        $payment->load(['bill.consumer.user', 'processedBy']);
+        // Load relationships based on payment type
+        $payment->load(['consumer.user', 'processedBy']);
+
+        if ($payment->isBillPayment()) {
+            $payment->load(['bill']);
+        } elseif ($payment->isMaintenancePayment()) {
+            $payment->load(['maintenanceRequest.maintenanceMaterials.material']);
+        }
 
         // Get association info for receipt header
         $association = [

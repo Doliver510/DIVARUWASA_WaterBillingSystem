@@ -6,6 +6,7 @@ use App\Models\Consumer;
 use App\Models\MaintenanceMaterial;
 use App\Models\MaintenanceRequest;
 use App\Models\Material;
+use App\Models\Payment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -142,19 +143,43 @@ class MaintenanceRequestController extends Controller
             'remarks' => 'nullable|string',
         ]);
 
-        DB::transaction(function () use ($maintenanceRequest, $validated) {
+        $payment = null;
+
+        DB::transaction(function () use ($maintenanceRequest, $validated, &$payment) {
             $maintenanceRequest->status = $validated['status'];
             $maintenanceRequest->remarks = $validated['remarks'] ?? $maintenanceRequest->remarks;
 
             if ($validated['status'] === 'completed') {
                 $maintenanceRequest->payment_option = $validated['payment_option'];
                 $maintenanceRequest->completed_at = now();
+
+                // If "Pay Now" and there are material costs, create a payment record with OR
+                if ($validated['payment_option'] === 'pay_now' && $maintenanceRequest->total_material_cost > 0) {
+                    $payment = Payment::create([
+                        'or_number' => Payment::generateOrNumber(),
+                        'payment_type' => Payment::TYPE_MAINTENANCE,
+                        'bill_id' => null,
+                        'maintenance_request_id' => $maintenanceRequest->id,
+                        'consumer_id' => $maintenanceRequest->consumer_id,
+                        'processed_by' => Auth::id(),
+                        'amount' => $maintenanceRequest->total_material_cost,
+                        'balance_before' => $maintenanceRequest->total_material_cost,
+                        'balance_after' => 0,
+                        'payment_method' => 'cash',
+                        'remarks' => 'Payment for maintenance materials - Request #'.$maintenanceRequest->id,
+                        'paid_at' => now(),
+                    ]);
+                }
             }
 
             if ($validated['status'] === 'cancelled') {
                 // Restore stock for all materials used
                 foreach ($maintenanceRequest->maintenanceMaterials as $mm) {
-                    $mm->material->restoreStock($mm->quantity);
+                    $mm->material->restoreStock(
+                        $mm->quantity,
+                        "Restored due to cancelled request #{$maintenanceRequest->id}",
+                        $maintenanceRequest->id
+                    );
                 }
             }
 
@@ -162,9 +187,18 @@ class MaintenanceRequestController extends Controller
         });
 
         $statusLabel = MaintenanceRequest::STATUSES[$validated['status']];
+        $message = "Request marked as {$statusLabel}.";
+
+        // If payment was created, show OR number
+        if ($payment) {
+            $message .= " Official Receipt: {$payment->or_number}";
+
+            return redirect()->route('payments.receipt', $payment)
+                ->with('success', $message);
+        }
 
         return redirect()->route('maintenance-requests.show', $maintenanceRequest)
-            ->with('success', "Request marked as {$statusLabel}.");
+            ->with('success', $message);
     }
 
     /**
@@ -199,8 +233,13 @@ class MaintenanceRequestController extends Controller
                 'subtotal' => $validated['quantity'] * $material->unit_price,
             ]);
 
-            // Deduct stock
-            $material->deductStock($validated['quantity']);
+            // Deduct stock with audit logging
+            $material->deductStock(
+                $validated['quantity'],
+                "Used for maintenance request #{$maintenanceRequest->id}",
+                'maintenance_request',
+                $maintenanceRequest->id
+            );
 
             // Recalculate total cost
             $maintenanceRequest->recalculateTotalCost();
@@ -220,8 +259,12 @@ class MaintenanceRequestController extends Controller
         }
 
         DB::transaction(function () use ($maintenanceRequest, $material) {
-            // Restore stock
-            $material->material->restoreStock($material->quantity);
+            // Restore stock with audit logging
+            $material->material->restoreStock(
+                $material->quantity,
+                "Material removed from request #{$maintenanceRequest->id}",
+                $maintenanceRequest->id
+            );
 
             // Delete the usage record
             $material->delete();
