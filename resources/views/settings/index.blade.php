@@ -9,7 +9,7 @@
         // Friendly display names for settings (internal key => display label)
         $friendlyNames = [
             'base_charge' => 'Minimum Charge',
-            'base_charge_covers_cubic' => 'Minimum Covers (cu.m)',
+            'base_charge_covers_cubic' => 'Minimum Covers (cubic meters)',
             'penalty_fee' => 'Penalty Fee',
             'registration_fee' => 'Registration Fee',
             'payment_due_days' => 'Payment Due Days',

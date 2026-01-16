@@ -121,7 +121,7 @@ class WaterRateBracket extends Model
                 $subtotal = $cubicsInBracket * (float) $bracket->rate_per_cubic;
                 $maxLabel = $bracket->max_cubic ?? '∞';
                 $breakdown['tiers'][] = [
-                    'range' => "{$bracket->min_cubic}-{$maxLabel} cu.m",
+                    'range' => "{$bracket->min_cubic}-{$maxLabel} cubic meters",
                     'units' => $cubicsInBracket,
                     'rate' => (float) $bracket->rate_per_cubic,
                     'amount' => $subtotal,

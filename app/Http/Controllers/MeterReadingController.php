@@ -90,7 +90,7 @@ class MeterReadingController extends Controller
         // Validate that current reading is >= previous reading
         if ($validated['reading_value'] < $previousReading) {
             return redirect()->back()
-                ->with('error', "Reading value cannot be less than previous reading ({$previousReading} cu.m).")
+                ->with('error', "Reading value cannot be less than previous reading ({$previousReading} cubic meters).")
                 ->withInput();
         }
 
@@ -112,7 +112,7 @@ class MeterReadingController extends Controller
         $consumption = $validated['reading_value'] - $previousReading;
 
         return redirect()->route('meter-readings.index', ['period' => $validated['billing_period']])
-            ->with('success', "Reading recorded for {$consumer->user->full_name}: {$consumption} cu.m. Bill #".$bill->id.' generated (₱'.number_format($bill->total_amount, 2).').');
+            ->with('success', "Reading recorded for {$consumer->user->full_name}: {$consumption} cubic meters. Bill #".$bill->id.' generated (₱'.number_format($bill->total_amount, 2).').');
     }
 
     /**
@@ -135,7 +135,7 @@ class MeterReadingController extends Controller
         // Validate that current reading is >= previous reading
         if ($validated['reading_value'] < $meterReading->previous_reading) {
             return redirect()->back()
-                ->with('error', "Reading value cannot be less than previous reading ({$meterReading->previous_reading} cu.m).");
+                ->with('error', "Reading value cannot be less than previous reading ({$meterReading->previous_reading} cubic meters).");
         }
 
         $meterReading->update($validated);

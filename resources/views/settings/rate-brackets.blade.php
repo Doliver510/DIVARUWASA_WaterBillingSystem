@@ -29,7 +29,7 @@
                         <div>
                             <div class="font-weight-medium">{{ __('Minimum Charge: ₱') }}{{ number_format(\App\Models\AppSetting::getValue('base_charge', 150), 2) }}</div>
                             <div class="text-muted">
-                                {{ __('Covers the first') }} {{ \App\Models\AppSetting::getValue('base_charge_covers_cubic', 10) }} {{ __('cu.m of consumption. The rates below apply to usage beyond this.') }}
+                                {{ __('Covers the first') }} {{ \App\Models\AppSetting::getValue('base_charge_covers_cubic', 10) }} {{ __('cubic meters of consumption. The rates below apply to usage beyond this.') }}
                             </div>
                         </div>
                     </div>
@@ -46,7 +46,7 @@
                         <div>
                             <div class="font-weight-medium">{{ __('How Billing Works') }}</div>
                             <div class="text-muted">
-                                {{ __('Example: For 25 cu.m consumption → ₱150 (base) + 10 cu.m × ₱15 (11-20 range) + 5 cu.m × ₱20 (21-30 range) = ₱400 total') }}
+                                {{ __('Example: For 25 cubic meters consumption → ₱150 (base) + 10 cubic meters × ₱15 (11-20 range) + 5 cubic meters × ₱20 (21-30 range) = ₱400 total') }}
                             </div>
                         </div>
                     </div>
@@ -68,8 +68,8 @@
                     <table class="table card-table table-vcenter">
                         <thead>
                             <tr>
-                                <th>{{ __('Range (cu.m)') }}</th>
-                                <th>{{ __('Rate per cu.m') }}</th>
+                                <th>{{ __('Range (cubic meters)') }}</th>
+                                <th>{{ __('Rate per cubic meter') }}</th>
                                 <th class="w-1"></th>
                             </tr>
                         </thead>
@@ -77,7 +77,7 @@
                             @forelse($brackets as $bracket)
                                 <tr>
                                     <td>
-                                        <strong>{{ $bracket->min_cubic }} - {{ $bracket->max_cubic ?? '∞' }}</strong> cu.m
+                                        <strong>{{ $bracket->min_cubic }} - {{ $bracket->max_cubic ?? '∞' }}</strong> cubic meters
                                     </td>
                                     <td>
                                         <span class="badge bg-green-lt fs-5">₱{{ number_format($bracket->rate_per_cubic, 2) }}</span>
@@ -112,11 +112,11 @@
                                                 <div class="modal-body">
                                                     <div class="row mb-3">
                                                         <div class="col-6">
-                                                            <label class="form-label">{{ __('Min Cubic (cu.m)') }}</label>
+                                                            <label class="form-label">{{ __('Min (cubic meters)') }}</label>
                                                             <input type="number" name="min_cubic" class="form-control" value="{{ $bracket->min_cubic }}" min="1" step="1" required>
                                                         </div>
                                                         <div class="col-6">
-                                                            <label class="form-label">{{ __('Max Cubic (cu.m)') }}</label>
+                                                            <label class="form-label">{{ __('Max (cubic meters)') }}</label>
                                                             <input type="number" name="max_cubic" class="form-control" value="{{ $bracket->max_cubic }}" min="1" step="1" placeholder="Leave empty for unlimited">
                                                         </div>
                                                     </div>
@@ -163,15 +163,15 @@
                     <div class="modal-body">
                         <div class="alert alert-info">
                             <svg xmlns="http://www.w3.org/2000/svg" class="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 9h.01" /><path d="M11 12h1v4h1" /></svg>
-                            {{ __('These rates apply to consumption beyond the base charge coverage (first ') }}{{ \App\Models\AppSetting::getValue('base_charge_covers_cubic', 10) }} cu.m).
+                            {{ __('These rates apply to consumption beyond the base charge coverage (first ') }}{{ \App\Models\AppSetting::getValue('base_charge_covers_cubic', 10) }} cubic meters).
                         </div>
                         <div class="row mb-3">
                             <div class="col-6">
-                                <label class="form-label">{{ __('Min Cubic (cu.m)') }}</label>
+                                <label class="form-label">{{ __('Min (cubic meters)') }}</label>
                                 <input type="number" name="min_cubic" class="form-control" min="1" step="1" required placeholder="e.g., 11">
                             </div>
                             <div class="col-6">
-                                <label class="form-label">{{ __('Max Cubic (cu.m)') }}</label>
+                                <label class="form-label">{{ __('Max (cubic meters)') }}</label>
                                 <input type="number" name="max_cubic" class="form-control" min="1" step="1" placeholder="Leave empty for unlimited">
                             </div>
                         </div>
