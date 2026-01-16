@@ -18,6 +18,10 @@ boost.json
 /tabler-samples
 /.continue
 /.clinerules
+_bmad
+_bmad-output
+.claude
+.agent
 claude.md
 /node_modules
 /public/build

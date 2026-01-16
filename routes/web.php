@@ -20,6 +20,10 @@ Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'inde
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+Route::post('/dashboard/send-reminders', [App\Http\Controllers\DashboardController::class, 'sendPaymentReminders'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard.send-reminders');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -54,6 +58,7 @@ Route::middleware('auth')->group(function () {
     // Materials Management (Admin only)
     Route::resource('materials', MaterialController::class)->except(['show', 'create', 'edit']);
     Route::post('/materials/{material}/add-stock', [MaterialController::class, 'addStock'])->name('materials.add-stock');
+    Route::get('/materials/stock-movements', [MaterialController::class, 'stockMovements'])->name('materials.stock-movements');
 
     // Maintenance Requests (All authenticated users, with role-based filtering)
     Route::resource('maintenance-requests', MaintenanceRequestController::class)->except(['edit', 'update', 'destroy']);
