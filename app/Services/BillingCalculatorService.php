@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Mail\BillGeneratedMail;
 use App\Models\AppSetting;
 use App\Models\Bill;
 use App\Models\Consumer;
@@ -10,6 +11,7 @@ use App\Models\MeterReading;
 use App\Models\WaterRateBracket;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class BillingCalculatorService
 {
@@ -73,6 +75,9 @@ class BillingCalculatorService
 
             // Mark material charges as billed
             $this->markMaterialChargesAsBilled($reading->consumer_id, $bill->id);
+
+            // Send bill email to consumer
+            $this->sendBillEmail($bill);
 
             return $bill;
         });
@@ -189,5 +194,26 @@ class BillingCalculatorService
     public function getChargeBreakdown(int $consumption): array
     {
         return WaterRateBracket::getChargeBreakdown($consumption);
+    }
+
+    /**
+     * Send bill email to consumer.
+     */
+    private function sendBillEmail(Bill $bill): void
+    {
+        // Load consumer with user relationship
+        $bill->loadMissing('consumer.user');
+
+        $email = $bill->consumer->user->email ?? null;
+
+        if (empty($email)) {
+            return;
+        }
+
+        try {
+            Mail::to($email)->send(new BillGeneratedMail($bill));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send bill email to '.$email.': '.$e->getMessage());
+        }
     }
 }
