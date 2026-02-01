@@ -24,7 +24,18 @@
                     <h3 class="card-title">{{ __('Profile Information') }}</h3>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted mb-3">{{ __("Update your account's profile information and email address.") }}</p>
+                    {{-- Read-only Name Display --}}
+                    <div class="mb-3">
+                        <label class="form-label">{{ __('Name') }}</label>
+                        <div class="form-control-plaintext">
+                            <strong>{{ $user->full_name }}</strong>
+                        </div>
+                        <small class="text-muted">{{ __('Contact an administrator to change your name.') }}</small>
+                    </div>
+
+                    <hr class="my-3">
+
+                    <p class="text-muted mb-3">{{ __('Update your email address below.') }}</p>
 
                     <form id="send-verification" method="post" action="{{ route('verification.send') }}">
                         @csrf
@@ -34,36 +45,13 @@
                         @csrf
                         @method('patch')
 
-                        <div class="row mb-3">
-                            <div class="col-lg-4">
-                                <label class="form-label required" for="first_name">{{ __('First Name') }}</label>
-                                <input type="text" id="first_name" name="first_name" class="form-control @error('first_name') is-invalid @enderror" value="{{ old('first_name', $user->first_name) }}" required autofocus>
-                                @error('first_name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="col-lg-4">
-                                <label class="form-label" for="middle_name">{{ __('Middle Name') }}</label>
-                                <input type="text" id="middle_name" name="middle_name" class="form-control @error('middle_name') is-invalid @enderror" value="{{ old('middle_name', $user->middle_name) }}">
-                                @error('middle_name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="col-lg-4">
-                                <label class="form-label required" for="last_name">{{ __('Last Name') }}</label>
-                                <input type="text" id="last_name" name="last_name" class="form-control @error('last_name') is-invalid @enderror" value="{{ old('last_name', $user->last_name) }}" required>
-                                @error('last_name')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
                         <div class="mb-3">
-                            <label class="form-label required" for="email">{{ __('Email') }}</label>
-                            <input type="email" id="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $user->email) }}" required>
+                            <label class="form-label" for="email">{{ __('Email') }}</label>
+                            <input type="email" id="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email', $user->email) }}" placeholder="email@example.com">
                             @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                            <small class="text-muted">{{ __('Leave blank if you don\'t want to receive email notifications.') }}</small>
 
                             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
                                 <div class="mt-2">
@@ -84,7 +72,7 @@
 
                         <button type="submit" class="btn btn-primary">
                             <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2" /><path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M14 4l0 4l-6 0l0 -4" /></svg>
-                            {{ __('Save') }}
+                            {{ __('Save Email') }}
                         </button>
 
                         @if (session('status') === 'profile-updated')

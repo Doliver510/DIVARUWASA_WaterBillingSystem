@@ -5,20 +5,8 @@
         </h2>
     </x-slot>
 
-    @php
-        // Friendly display names for settings (internal key => display label)
-        $friendlyNames = [
-            'base_charge' => 'Minimum Charge',
-            'base_charge_covers_cubic' => 'Minimum Covers (cubic meters)',
-            'penalty_fee' => 'Penalty Fee',
-            'registration_fee' => 'Registration Fee',
-            'payment_due_days' => 'Payment Due Days',
-            'reconnection_fee' => 'Reconnection Fee',
-        ];
-    @endphp
-
     <div class="row row-cards">
-        <div class="col-12">
+        <div class="col-lg-8">
             @if(session('success'))
                 <div class="alert alert-success alert-dismissible" role="alert">
                     <div class="d-flex">
@@ -31,43 +19,166 @@
                 </div>
             @endif
 
-            <form action="{{ route('settings.update') }}" method="POST" class="card">
+            <form action="{{ route('settings.update') }}" method="POST">
                 @csrf
-                <div class="card-header">
-                    <h3 class="card-title">{{ __('Configuration') }}</h3>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        @foreach($settings as $setting)
-                            <div class="col-md-6 mb-3">
+
+                {{-- Billing Rates Card --}}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2 text-primary" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" /><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" /></svg>
+                                Billing Rates
+                            </h3>
+                            <p class="card-subtitle">Water consumption charges and minimum billing</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
                                 <label class="form-label">
-                                    {{ $friendlyNames[$setting->key] ?? Str::title(str_replace('_', ' ', $setting->key)) }}
-                                    <span class="form-label-description text-muted">
-                                        {{ $setting->description }}
-                                    </span>
+                                    Minimum Charge
+                                    <span class="form-label-description">Base monthly rate</span>
                                 </label>
                                 <div class="input-group">
-                                    @if($setting->type === 'currency')
-                                        <span class="input-group-text">₱</span>
-                                    @endif
-                                    <input type="number" 
-                                           step="{{ $setting->type === 'currency' ? '0.01' : '1' }}" 
-                                           name="settings[{{ $setting->key }}]" 
+                                    <span class="input-group-text">₱</span>
+                                    <input type="number" step="0.01" name="settings[base_charge]" 
                                            class="form-control" 
-                                           value="{{ $setting->value }}"
+                                           value="{{ $settings->firstWhere('key', 'base_charge')?->value ?? '150.00' }}"
                                            required>
                                 </div>
                             </div>
-                        @endforeach
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Minimum Covers
+                                    <span class="form-label-description">Cubic meters included</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" step="1" name="settings[base_charge_covers_cubic]" 
+                                           class="form-control" 
+                                           value="{{ $settings->firstWhere('key', 'base_charge_covers_cubic')?->value ?? '10' }}"
+                                           required>
+                                    <span class="input-group-text">cu.m</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="card-footer text-end">
+
+                {{-- Payment & Penalties Card --}}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2 text-warning" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" /></svg>
+                                Payment & Penalties
+                            </h3>
+                            <p class="card-subtitle">Late payment fees and grace period</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Penalty Fee
+                                    <span class="form-label-description">Charged for late payments</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₱</span>
+                                    <input type="number" step="0.01" name="settings[penalty_fee]" 
+                                           class="form-control" 
+                                           value="{{ $settings->firstWhere('key', 'penalty_fee')?->value ?? '50.00' }}"
+                                           required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Grace Period
+                                    <span class="form-label-description">Days before penalty applies</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" step="1" name="settings[grace_period_days]" 
+                                           class="form-control" 
+                                           value="{{ $settings->firstWhere('key', 'grace_period_days')?->value ?? '5' }}"
+                                           required>
+                                    <span class="input-group-text">days</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Billing Cycle Card --}}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2 text-info" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z" /><path d="M16 3v4" /><path d="M8 3v4" /><path d="M4 11h16" /><path d="M11 15h1" /><path d="M12 15v3" /></svg>
+                                Billing Cycle
+                            </h3>
+                            <p class="card-subtitle">Billing period configuration</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Cycle Start Day
+                                    <span class="form-label-description">Day of month (1-28)</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z" /><path d="M16 3v4" /><path d="M8 3v4" /><path d="M4 11h16" /></svg>
+                                    </span>
+                                    <input type="number" step="1" min="1" max="28" name="settings[billing_cycle_start_day]" 
+                                           class="form-control" 
+                                           value="{{ $settings->firstWhere('key', 'billing_cycle_start_day')?->value ?? '10' }}"
+                                           required>
+                                </div>
+                                <small class="text-muted">
+                                    Example: Day 10 means billing period runs from the 10th of one month to the 10th of the next.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Save Button --}}
+                <div class="d-flex justify-content-end">
                     <button type="submit" class="btn btn-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2" /><path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M14 4l0 4l-6 0l0 -4" /></svg>
-                        {{ __('Save Settings') }}
+                        Save Settings
                     </button>
                 </div>
             </form>
+        </div>
+
+        {{-- Info Sidebar --}}
+        <div class="col-lg-4">
+            <div class="card bg-primary-lt">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="avatar bg-primary text-white me-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 9h.01" /><path d="M11 12h1v4h1" /></svg>
+                        </span>
+                        <div>
+                            <h4 class="mb-0">Settings Guide</h4>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <h5 class="mb-1">Minimum Charge</h5>
+                        <p class="text-muted mb-0 small">The base amount charged to all consumers, covering the first X cubic meters of water usage.</p>
+                    </div>
+                    <div class="mb-3">
+                        <h5 class="mb-1">Penalty Fee</h5>
+                        <p class="text-muted mb-0 small">Added to bills when payment is not made within the grace period after the due date.</p>
+                    </div>
+                    <div class="mb-0">
+                        <h5 class="mb-1">Billing Cycle</h5>
+                        <p class="text-muted mb-0 small">Determines the start day of each billing period. Readings taken on this day mark the end of one period and start of the next.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </x-app-layout>
