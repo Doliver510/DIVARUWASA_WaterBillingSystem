@@ -67,7 +67,7 @@ class ConsumerController extends Controller
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
+            'email' => ['nullable', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
             'id_no' => ['nullable', 'string', 'max:10', 'unique:consumers', 'regex:/^[0-9]+$/'],
             'block_id' => ['required', 'exists:blocks,id'],
             'lot_number' => ['required', 'integer', 'min:1'],
@@ -91,7 +91,7 @@ class ConsumerController extends Controller
                 'first_name' => $validated['first_name'],
                 'middle_name' => $validated['middle_name'],
                 'last_name' => $validated['last_name'],
-                'email' => $validated['email'],
+                'email' => $validated['email'] ?? null,
                 'password' => Hash::make($defaultPassword),
             ]);
 
@@ -145,7 +145,7 @@ class ConsumerController extends Controller
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$consumer->user_id],
+            'email' => ['nullable', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$consumer->user_id],
             'id_no' => ['required', 'string', 'max:10', 'unique:consumers,id_no,'.$consumer->id, 'regex:/^[0-9]+$/'],
             'block_id' => ['required', 'exists:blocks,id'],
             'lot_number' => ['required', 'integer', 'min:1'],
@@ -170,7 +170,7 @@ class ConsumerController extends Controller
                 'first_name' => $validated['first_name'],
                 'middle_name' => $validated['middle_name'],
                 'last_name' => $validated['last_name'],
-                'email' => $validated['email'],
+                'email' => $validated['email'] ?? null,
             ];
 
             if ($newPassword) {

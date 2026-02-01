@@ -55,7 +55,7 @@ class ConsumerMasterlistExport implements FromCollection, ShouldAutoSize, WithHe
             $consumer->user->last_name,
             $consumer->user->first_name,
             $consumer->user->middle_name ?? '',
-            $consumer->user->email,
+            $consumer->user->email ?? '-',
             $consumer->block?->name ?? 'N/A',
             $consumer->lot_number,
             $consumer->status,

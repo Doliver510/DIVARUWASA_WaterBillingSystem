@@ -204,5 +204,8 @@
 
         <!-- Tabler JS -->
         <script src="{{ asset('tabler/dist/js/tabler.min.js') }}" defer></script>
+
+        <!-- Page-specific scripts -->
+        @stack('scripts')
     </body>
 </html>

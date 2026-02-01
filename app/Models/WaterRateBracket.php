@@ -50,30 +50,30 @@ class WaterRateBracket extends Model
             return $totalCharge;
         }
 
-        // Calculate excess consumption
-        $excessCubic = $consumption - $baseCoversCubic;
-
-        // Get brackets ordered by sort_order (these are for excess consumption only)
+        // Get brackets ordered by sort_order
         $brackets = self::orderBy('sort_order')->get();
 
         foreach ($brackets as $bracket) {
-            if ($excessCubic <= 0) {
+            // Determine the effective range for this bracket
+            $bracketMin = $bracket->min_cubic;
+            $bracketMax = $bracket->max_cubic ?? PHP_INT_MAX;
+
+            // Skip if consumption doesn't reach this bracket
+            if ($consumption < $bracketMin) {
                 break;
             }
 
-            // Calculate how many excess cubic meters fall into this bracket
-            // Bracket min_cubic is the actual consumption level (e.g., 11 means 11th cu.m)
-            // We need to translate this to excess cubic meters
-            $bracketExcessStart = $bracket->min_cubic - $baseCoversCubic - 1; // e.g., 11 - 10 - 1 = 0
-            $bracketExcessEnd = $bracket->max_cubic ? $bracket->max_cubic - $baseCoversCubic : PHP_INT_MAX;
+            // Calculate how many cubic meters fall within this bracket
+            // Start: max of (bracket min, base coverage + 1)
+            // End: min of (consumption, bracket max)
+            $effectiveStart = max($bracketMin, $baseCoversCubic + 1);
+            $effectiveEnd = min($consumption, $bracketMax);
 
-            // How many excess cubics are in this bracket range?
-            $cubicsInBracket = min($excessCubic, $bracketExcessEnd) - $bracketExcessStart;
-            $cubicsInBracket = max(0, $cubicsInBracket);
+            // Calculate units in this bracket
+            $cubicsInBracket = $effectiveEnd - $effectiveStart + 1;
 
             if ($cubicsInBracket > 0) {
                 $totalCharge += $cubicsInBracket * (float) $bracket->rate_per_cubic;
-                $excessCubic -= $cubicsInBracket;
             }
         }
 
@@ -103,19 +103,24 @@ class WaterRateBracket extends Model
             return $breakdown;
         }
 
-        $excessCubic = $consumption - $baseCoversCubic;
         $brackets = self::orderBy('sort_order')->get();
 
         foreach ($brackets as $bracket) {
-            if ($excessCubic <= 0) {
+            // Determine the effective range for this bracket
+            $bracketMin = $bracket->min_cubic;
+            $bracketMax = $bracket->max_cubic ?? PHP_INT_MAX;
+
+            // Skip if consumption doesn't reach this bracket
+            if ($consumption < $bracketMin) {
                 break;
             }
 
-            $bracketExcessStart = $bracket->min_cubic - $baseCoversCubic - 1;
-            $bracketExcessEnd = $bracket->max_cubic ? $bracket->max_cubic - $baseCoversCubic : PHP_INT_MAX;
+            // Calculate how many cubic meters fall within this bracket
+            $effectiveStart = max($bracketMin, $baseCoversCubic + 1);
+            $effectiveEnd = min($consumption, $bracketMax);
 
-            $cubicsInBracket = min($excessCubic, $bracketExcessEnd) - $bracketExcessStart;
-            $cubicsInBracket = max(0, $cubicsInBracket);
+            // Calculate units in this bracket
+            $cubicsInBracket = $effectiveEnd - $effectiveStart + 1;
 
             if ($cubicsInBracket > 0) {
                 $subtotal = $cubicsInBracket * (float) $bracket->rate_per_cubic;
@@ -127,7 +132,6 @@ class WaterRateBracket extends Model
                     'amount' => $subtotal,
                 ];
                 $breakdown['total'] += $subtotal;
-                $excessCubic -= $cubicsInBracket;
             }
         }
 

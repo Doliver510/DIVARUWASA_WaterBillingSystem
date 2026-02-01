@@ -119,7 +119,7 @@
                                     {{ $consumer->user->last_name }}, {{ $consumer->user->first_name }} {{ $consumer->user->middle_name ?? '' }}
                                 </a>
                             </td>
-                            <td class="text-muted">{{ $consumer->user->email }}</td>
+                            <td class="text-muted">{{ $consumer->user->email ?? '-' }}</td>
                             <td>{{ $consumer->address }}</td>
                             <td>
                                 <span class="badge {{ $consumer->status === 'Active' ? 'bg-success' : 'bg-danger' }}">

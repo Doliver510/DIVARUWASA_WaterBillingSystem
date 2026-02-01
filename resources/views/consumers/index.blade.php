@@ -107,7 +107,7 @@
                                             <span class="avatar avatar-sm me-2" style="background-image: url(https://ui-avatars.com/api/?name={{ urlencode($consumer->user->full_name) }}&background=0077b6&color=fff)"></span>
                                             <div>
                                                 <div>{{ $consumer->user->full_name }}</div>
-                                                <div class="text-secondary small">{{ $consumer->user->email }}</div>
+                                                <div class="text-secondary small">{{ $consumer->user->email ?? 'No email' }}</div>
                                             </div>
                                         </div>
                                     </td>
@@ -252,8 +252,9 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label required">{{ __('Email Address') }}</label>
-                            <input type="email" name="email" class="form-control" value="{{ old('email') }}" required placeholder="consumer@example.com">
+                            <label class="form-label">{{ __('Email Address') }} <span class="text-muted">({{ __('Optional') }})</span></label>
+                            <input type="email" name="email" class="form-control" value="{{ old('email') }}" placeholder="consumer@example.com">
+                            <small class="form-hint">{{ __('Leave blank if consumer has no email. They can login using their Account Number.') }}</small>
                         </div>
                         <div class="mb-3">
                             <div class="alert alert-info">
@@ -373,8 +374,9 @@
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label required">{{ __('Email Address') }}</label>
-                                <input type="email" name="email" class="form-control" value="{{ old('email', $consumer->user->email) }}" required>
+                                <label class="form-label">{{ __('Email Address') }} <span class="text-muted">({{ __('Optional') }})</span></label>
+                                <input type="email" name="email" class="form-control" value="{{ old('email', $consumer->user->email) }}" placeholder="consumer@example.com">
+                                <small class="form-hint">{{ __('Leave blank if consumer has no email. They can login using their Account Number.') }}</small>
                             </div>
                             <div class="mb-3">
                                 <label class="form-check form-switch">

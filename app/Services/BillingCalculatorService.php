@@ -161,14 +161,18 @@ class BillingCalculatorService
      */
     public function markMaterialChargesAsBilled(int $consumerId, int $billId): void
     {
-        MaintenanceRequest::where('consumer_id', $consumerId)
+        $requests = MaintenanceRequest::where('consumer_id', $consumerId)
             ->where('status', 'completed')
             ->where('payment_option', 'charge_to_bill')
             ->whereNull('billed_at')
-            ->update([
+            ->get();
+
+        foreach ($requests as $request) {
+            $request->update([
                 'billed_at' => now(),
-                'remarks' => DB::raw("CONCAT(COALESCE(remarks, ''), ' [Billed: Bill #".$billId."]')"),
+                'remarks' => ($request->remarks ?? '') . " [Billed: Bill #{$billId}]",
             ]);
+        }
     }
 
     /**

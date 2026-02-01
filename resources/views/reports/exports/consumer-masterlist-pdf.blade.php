@@ -54,7 +54,7 @@
                     <td>{{ $consumer->user->last_name }}</td>
                     <td>{{ $consumer->user->first_name }}</td>
                     <td>{{ $consumer->user->middle_name ?? '' }}</td>
-                    <td>{{ $consumer->user->email }}</td>
+                    <td>{{ $consumer->user->email ?? '-' }}</td>
                     <td>{{ $consumer->block?->name ?? 'N/A' }}</td>
                     <td>{{ $consumer->lot_number }}</td>
                     <td class="text-center status-{{ strtolower($consumer->status) }}">{{ $consumer->status }}</td>

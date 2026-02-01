@@ -34,78 +34,74 @@
             </div>
         @endif
 
-        <!-- Entry Form Card -->
-        <div class="col-lg-4">
-            <div class="card">
+        <!-- Entry Form Card (Now on top, horizontal layout) -->
+        <div class="col-12">
+            <div class="card mb-3">
                 <div class="card-header">
                     <h3 class="card-title">{{ __('Record Reading') }}</h3>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('meter-readings.store') }}" method="POST" id="reading-form">
                         @csrf
-                        <div class="mb-3">
-                            <label class="form-label required">{{ __('Consumer') }}</label>
-                            <select name="consumer_id" id="consumer-select" class="form-select" required>
-                                <option value="">{{ __('Select consumer...') }}</option>
-                                @foreach($consumers as $consumer)
-                                    <option value="{{ $consumer->id }}" data-previous="{{ $consumer->latest_reading }}">
-                                        {{ $consumer->id_no }} - {{ $consumer->user->full_name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">{{ __('Previous Reading') }}</label>
-                            <div class="input-group">
-                                <input type="text" id="previous-reading" class="form-control" value="0" readonly>
-                                <span class="input-group-text">cu.m</span>
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label required">{{ __('Consumer') }}</label>
+                                <select name="consumer_id" id="consumer-select" class="form-select" required>
+                                    <option value="">{{ __('Select consumer...') }}</option>
+                                    @foreach($consumers as $consumer)
+                                        <option value="{{ $consumer->id }}" data-previous="{{ $consumer->latest_reading }}">
+                                            {{ $consumer->id_no }} - {{ $consumer->user->full_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label required">{{ __('Current Reading') }}</label>
-                            <div class="input-group">
-                                <input type="number" name="reading_value" id="current-reading" class="form-control" required min="0" placeholder="Enter reading">
-                                <span class="input-group-text">cu.m</span>
+                            <div class="col-md-2 col-6">
+                                <label class="form-label">{{ __('Previous') }}</label>
+                                <div class="input-group">
+                                    <input type="text" id="previous-reading" class="form-control" value="0" readonly>
+                                    <span class="input-group-text">cu.m</span>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">{{ __('Consumption') }}</label>
-                            <div class="input-group">
-                                <input type="text" id="consumption-display" class="form-control bg-light" value="0" readonly>
-                                <span class="input-group-text">cu.m</span>
+                            <div class="col-md-2 col-6">
+                                <label class="form-label required">{{ __('Current Reading') }}</label>
+                                <div class="input-group">
+                                    <input type="number" name="reading_value" id="current-reading" class="form-control" required min="0" placeholder="Enter">
+                                    <span class="input-group-text">cu.m</span>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col-6">
-                                <label class="form-label required">{{ __('Reading Date') }}</label>
+                            <div class="col-md-1 col-4">
+                                <label class="form-label">{{ __('Consumption') }}</label>
+                                <div class="input-group">
+                                    <input type="text" id="consumption-display" class="form-control bg-light fw-bold text-primary" value="0" readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-2 col-4">
+                                <label class="form-label required">{{ __('Date') }}</label>
                                 <input type="date" name="reading_date" class="form-control" value="{{ date('Y-m-d') }}" required>
                             </div>
-                            <div class="col-6">
-                                <label class="form-label required">{{ __('Billing Period') }}</label>
+                            <div class="col-md-2 col-4">
+                                <label class="form-label required">{{ __('Period') }}</label>
                                 <input type="month" name="billing_period" class="form-control" value="{{ $currentPeriod }}" required>
                             </div>
                         </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">{{ __('Remarks') }}</label>
-                            <textarea name="remarks" class="form-control" rows="2" placeholder="{{ __('Optional notes...') }}"></textarea>
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-10">
+                                <input type="text" name="remarks" class="form-control" placeholder="{{ __('Remarks (optional)...') }}">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
+                                    {{ __('Save') }}
+                                </button>
+                            </div>
                         </div>
-
-                        <button type="submit" class="btn btn-primary w-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-                            {{ __('Save Reading') }}
-                        </button>
                     </form>
                 </div>
             </div>
         </div>
 
-        <!-- Readings List -->
-        <div class="col-lg-8">
+        <!-- Readings List (Now full width below the form) -->
+        <div class="col-12">
             <!-- Filter Card -->
             <div class="card mb-3">
                 <div class="card-body py-2">
