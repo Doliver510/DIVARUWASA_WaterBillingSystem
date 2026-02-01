@@ -18,11 +18,11 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'force.password.change'])
     ->name('dashboard');
 
 Route::post('/dashboard/send-reminders', [App\Http\Controllers\DashboardController::class, 'sendPaymentReminders'])
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'force.password.change'])
     ->name('dashboard.send-reminders');
 
 // Force Password Change Routes (must be before the main auth group)
