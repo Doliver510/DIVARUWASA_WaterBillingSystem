@@ -139,53 +139,6 @@
                     </form>
                 </div>
             </div>
-
-            {{-- Delete Account --}}
-            <div class="card border-danger">
-                <div class="card-header bg-danger-lt">
-                    <h3 class="card-title text-danger">{{ __('Delete Account') }}</h3>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted mb-3">{{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.') }}</p>
-
-                    <a href="#" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modal-delete-account">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
-                        {{ __('Delete Account') }}
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Delete Account Modal --}}
-    <div class="modal modal-blur fade" id="modal-delete-account" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-status bg-danger"></div>
-                <form method="post" action="{{ route('profile.destroy') }}">
-                    @csrf
-                    @method('delete')
-
-                    <div class="modal-body text-center py-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" /></svg>
-                        <h3>{{ __('Are you sure?') }}</h3>
-                        <div class="text-secondary mb-3">
-                            {{ __('Once your account is deleted, all of its resources and data will be permanently deleted.') }}
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="delete_password">{{ __('Enter your password to confirm') }}</label>
-                            <input type="password" id="delete_password" name="password" class="form-control @error('password', 'userDeletion') is-invalid @enderror" placeholder="{{ __('Password') }}" required>
-                            @error('password', 'userDeletion')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn w-100" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
-                        <button type="submit" class="btn btn-danger w-100">{{ __('Delete Account') }}</button>
-                    </div>
-                </form>
-            </div>
         </div>
     </div>
 </x-app-layout>

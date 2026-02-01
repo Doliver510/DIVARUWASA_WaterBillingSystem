@@ -7,17 +7,25 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\View\View;
 
-class PasswordController extends Controller
+class ForcePasswordChangeController extends Controller
 {
+    /**
+     * Display the force password change form.
+     */
+    public function show(): View
+    {
+        return view('auth.force-password-change');
+    }
+
     /**
      * Update the user's password.
      */
     public function update(Request $request): RedirectResponse
     {
-        $validated = $request->validateWithBag('updatePassword', [
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', Password::defaults(), 'confirmed'],
+        $validated = $request->validate([
+            'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
         $request->user()->update([
@@ -25,6 +33,6 @@ class PasswordController extends Controller
             'password_changed_at' => now(),
         ]);
 
-        return back()->with('status', 'password-updated');
+        return redirect()->route('dashboard')->with('success', 'Password changed successfully. Welcome to DIVARUWASA!');
     }
 }

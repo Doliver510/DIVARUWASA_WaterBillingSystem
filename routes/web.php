@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WaterRateBracketController;
+use App\Http\Controllers\Auth\ForcePasswordChangeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -24,7 +25,15 @@ Route::post('/dashboard/send-reminders', [App\Http\Controllers\DashboardControll
     ->middleware(['auth', 'verified'])
     ->name('dashboard.send-reminders');
 
+// Force Password Change Routes (must be before the main auth group)
 Route::middleware('auth')->group(function () {
+    Route::get('/password/change', [ForcePasswordChangeController::class, 'show'])
+        ->name('password.force-change');
+    Route::post('/password/change', [ForcePasswordChangeController::class, 'update'])
+        ->name('password.force-change.update');
+});
+
+Route::middleware(['auth', 'force.password.change'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
