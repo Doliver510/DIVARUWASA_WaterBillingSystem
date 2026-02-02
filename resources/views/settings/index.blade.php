@@ -19,7 +19,38 @@
                 </div>
             @endif
 
-            <form action="{{ route('settings.update') }}" method="POST">
+            @if($errors->any())
+                <div class="alert alert-danger alert-dismissible" role="alert">
+                    <div class="d-flex">
+                        <div>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" /></svg>
+                        </div>
+                        <div>
+                            @foreach($errors->all() as $error)
+                                <div>{{ $error }}</div>
+                            @endforeach
+                        </div>
+                    </div>
+                    <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+                </div>
+            @endif
+
+            {{-- Period Lock Warning --}}
+            @if(isset($currentPeriodLocked) && $currentPeriodLocked)
+                <div class="alert alert-warning" role="alert">
+                    <div class="d-flex">
+                        <div>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6z" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" /></svg>
+                        </div>
+                        <div>
+                            <strong>Current period locked:</strong> Rates for {{ $currentPeriod ?? 'this period' }} are locked. 
+                            Changes will apply to future billing periods only.
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <form id="settingsForm" action="{{ route('settings.update') }}" method="POST">
                 @csrf
 
                 {{-- Billing Rates Card --}}
@@ -42,9 +73,9 @@
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text">₱</span>
-                                    <input type="number" step="0.01" name="settings[base_charge]" 
+                                    <input type="number" step="1" name="settings[base_charge]" 
                                            class="form-control" 
-                                           value="{{ $settings->firstWhere('key', 'base_charge')?->value ?? '150.00' }}"
+                                           value="{{ $settings->firstWhere('key', 'base_charge')?->value ?? '150' }}"
                                            required>
                                 </div>
                             </div>
@@ -85,9 +116,9 @@
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text">₱</span>
-                                    <input type="number" step="0.01" name="settings[penalty_fee]" 
+                                    <input type="number" step="1" name="settings[penalty_fee]" 
                                            class="form-control" 
-                                           value="{{ $settings->firstWhere('key', 'penalty_fee')?->value ?? '50.00' }}"
+                                           value="{{ $settings->firstWhere('key', 'penalty_fee')?->value ?? '50' }}"
                                            required>
                                 </div>
                             </div>
@@ -143,9 +174,9 @@
                     </div>
                 </div>
 
-                {{-- Save Button --}}
+                {{-- Save Button - Opens Confirmation Modal --}}
                 <div class="d-flex justify-content-end">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">
                         <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2" /><path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M14 4l0 4l-6 0l0 -4" /></svg>
                         Save Settings
                     </button>
@@ -173,12 +204,90 @@
                         <h5 class="mb-1">Penalty Fee</h5>
                         <p class="text-muted mb-0 small">Added to bills when payment is not made within the grace period after the due date.</p>
                     </div>
-                    <div class="mb-0">
+                    <div class="mb-3">
                         <h5 class="mb-1">Billing Cycle</h5>
                         <p class="text-muted mb-0 small">Determines the start day of each billing period. Readings taken on this day mark the end of one period and start of the next.</p>
+                    </div>
+                    <hr>
+                    <div class="mb-0">
+                        <h5 class="mb-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon text-warning me-1" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6z" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" /></svg>
+                            Rate Locking
+                        </h5>
+                        <p class="text-muted mb-0 small">Once meter readings start for a billing period, rates are locked to ensure consistent billing. Changes will apply to future periods.</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    {{-- Confirmation Modal --}}
+    <div class="modal modal-blur fade" id="confirmModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-status bg-warning"></div>
+                <div class="modal-body text-center py-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-lg text-warning mb-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" /></svg>
+                    <h3>Confirm Settings Change</h3>
+                    <div class="text-muted">
+                        You are about to modify billing settings. This will affect future bill calculations.
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label">Type <strong>CONFIRM</strong> to proceed:</label>
+                        <input type="text" id="confirmInput" class="form-control text-center" placeholder="Type CONFIRM here" autocomplete="off">
+                        <div id="confirmError" class="invalid-feedback">Please type CONFIRM exactly</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="w-100">
+                        <div class="row">
+                            <div class="col">
+                                <button type="button" class="btn w-100" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                            <div class="col">
+                                <button type="button" id="confirmSubmitBtn" class="btn btn-warning w-100" disabled>
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const confirmInput = document.getElementById('confirmInput');
+            const confirmBtn = document.getElementById('confirmSubmitBtn');
+            const confirmError = document.getElementById('confirmError');
+            const settingsForm = document.getElementById('settingsForm');
+
+            confirmInput.addEventListener('input', function() {
+                const isValid = this.value === 'CONFIRM';
+                confirmBtn.disabled = !isValid;
+                
+                if (this.value.length > 0 && !isValid) {
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                }
+            });
+
+            confirmBtn.addEventListener('click', function() {
+                if (confirmInput.value === 'CONFIRM') {
+                    settingsForm.submit();
+                }
+            });
+
+            // Reset modal on close
+            document.getElementById('confirmModal').addEventListener('hidden.bs.modal', function() {
+                confirmInput.value = '';
+                confirmBtn.disabled = true;
+                confirmInput.classList.remove('is-invalid');
+            });
+        });
+    </script>
+    @endpush
 </x-app-layout>

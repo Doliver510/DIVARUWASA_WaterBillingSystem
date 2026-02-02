@@ -30,8 +30,12 @@ class BillingCalculatorService
             // Calculate dates
             $dates = $this->calculateBillingDates($reading->billing_period);
 
-            // Calculate water charge
-            $waterCharge = WaterRateBracket::calculateCharge($reading->consumption);
+            // Calculate water charge using locked rates for this billing period
+            // This ensures all bills in the same period use the same rates
+            $waterCharge = \App\Models\BillingPeriodRate::calculateChargeForPeriod(
+                $reading->consumption, 
+                $reading->billing_period
+            );
 
             // Get arrears (previous unpaid balances)
             $arrears = Bill::getArrears($reading->consumer_id, $reading->billing_period);

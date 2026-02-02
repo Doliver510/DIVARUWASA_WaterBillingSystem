@@ -19,6 +19,37 @@
                 </div>
             @endif
 
+            @if($errors->any())
+                <div class="alert alert-danger alert-dismissible" role="alert">
+                    <div class="d-flex">
+                        <div>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" /></svg>
+                        </div>
+                        <div>
+                            <strong>Validation Error</strong>
+                            @foreach($errors->all() as $error)
+                                <div>{{ $error }}</div>
+                            @endforeach
+                        </div>
+                    </div>
+                    <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+                </div>
+            @endif
+
+            {{-- Period Lock Warning --}}
+            @if(isset($currentPeriodLocked) && $currentPeriodLocked)
+                <div class="alert alert-warning" role="alert">
+                    <div class="d-flex">
+                        <div>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon alert-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6z" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" /></svg>
+                        </div>
+                        <div>
+                            <strong>Current period locked:</strong> Rates for {{ $currentPeriod ?? 'this period' }} are locked. Changes will apply to future billing periods only.
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <!-- Minimum Charge Info Card -->
             <div class="card mb-3 bg-azure-lt">
                 <div class="card-body">
@@ -77,7 +108,7 @@
                             @forelse($brackets as $bracket)
                                 <tr>
                                     <td>
-                                        <strong>{{ $bracket->min_cubic }} - {{ $bracket->max_cubic ?? '∞' }}</strong> cubic meters
+                                        <strong>{{ $bracket->min_cubic }} - {{ $bracket->max_cubic ?? 'up' }}</strong> cubic meters
                                     </td>
                                     <td>
                                         <span class="badge bg-green-lt fs-5">₱{{ number_format($bracket->rate_per_cubic, 2) }}</span>

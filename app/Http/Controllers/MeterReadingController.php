@@ -16,15 +16,13 @@ class MeterReadingController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = MeterReading::with(['consumer.user', 'readBy']);
+        $currentPeriod = MeterReading::getCurrentBillingPeriod();
+        $viewPeriod = $request->period ?? $currentPeriod;
+
+        $query = MeterReading::with(['consumer.user', 'consumer.block', 'readBy']);
 
         // Filter by billing period
-        if ($request->filled('period')) {
-            $query->where('billing_period', $request->period);
-        } else {
-            // Default to current billing period
-            $query->where('billing_period', MeterReading::getCurrentBillingPeriod());
-        }
+        $query->where('billing_period', $viewPeriod);
 
         // Filter by consumer
         if ($request->filled('consumer_id')) {
@@ -33,12 +31,24 @@ class MeterReadingController extends Controller
 
         $readings = $query->orderBy('created_at', 'desc')->get();
 
-        // Get list of consumers for the entry form
-        $consumers = Consumer::with('user')
+        // Get list of consumers for the entry form with reading status
+        $consumers = Consumer::with(['user', 'block'])
             ->whereHas('user')
             ->where('status', 'Active')
+            ->orderBy('block_id')
             ->orderBy('id_no')
-            ->get();
+            ->get()
+            ->map(function ($consumer) use ($currentPeriod) {
+                // Check if consumer already has reading for current period
+                $hasReading = MeterReading::where('consumer_id', $consumer->id)
+                    ->where('billing_period', $currentPeriod)
+                    ->exists();
+                $consumer->has_current_reading = $hasReading;
+                return $consumer;
+            });
+
+        // Get unique blocks for filter
+        $blocks = \App\Models\Block::orderBy('name')->pluck('name', 'id');
 
         // Get available billing periods for filter
         $periods = MeterReading::select('billing_period')
@@ -47,16 +57,35 @@ class MeterReadingController extends Controller
             ->pluck('billing_period');
 
         // Add current period if not in list
-        $currentPeriod = MeterReading::getCurrentBillingPeriod();
         if (! $periods->contains($currentPeriod)) {
             $periods = $periods->prepend($currentPeriod);
         }
 
+        // Calculate period date range for date picker restriction
+        $cycleStartDay = (int) \App\Models\AppSetting::getValue('billing_cycle_start_day', 10);
+        $periodDate = \Carbon\Carbon::createFromFormat('Y-m', $currentPeriod);
+        
+        // Period runs from previous month's start day to this month's start day
+        $periodStart = $periodDate->copy()->subMonth()->day($cycleStartDay);
+        $periodEnd = $periodDate->copy()->day($cycleStartDay);
+
+        // Reading progress stats
+        $totalConsumers = $consumers->count();
+        $readConsumers = $consumers->where('has_current_reading', true)->count();
+        $pendingConsumers = $totalConsumers - $readConsumers;
+
         return view('meter-readings.index', [
             'readings' => $readings,
             'consumers' => $consumers,
+            'blocks' => $blocks,
             'periods' => $periods,
-            'currentPeriod' => $request->period ?? $currentPeriod,
+            'currentPeriod' => $currentPeriod,
+            'viewPeriod' => $viewPeriod,
+            'periodStart' => $periodStart->format('Y-m-d'),
+            'periodEnd' => $periodEnd->format('Y-m-d'),
+            'totalConsumers' => $totalConsumers,
+            'readConsumers' => $readConsumers,
+            'pendingConsumers' => $pendingConsumers,
         ]);
     }
 
@@ -72,6 +101,14 @@ class MeterReadingController extends Controller
             'billing_period' => 'required|regex:/^\d{4}-\d{2}$/',
             'remarks' => 'nullable|string|max:500',
         ]);
+
+        // Validate billing period is the current period only
+        $currentPeriod = MeterReading::getCurrentBillingPeriod();
+        if ($validated['billing_period'] !== $currentPeriod) {
+            return redirect()->back()
+                ->with('error', "Readings can only be entered for the current billing period ({$currentPeriod}). You selected {$validated['billing_period']}.")
+                ->withInput();
+        }
 
         // Check if reading already exists for this consumer and period
         $existing = MeterReading::where('consumer_id', $validated['consumer_id'])
@@ -92,6 +129,13 @@ class MeterReadingController extends Controller
             return redirect()->back()
                 ->with('error', "Reading value cannot be less than previous reading ({$previousReading} cubic meters).")
                 ->withInput();
+        }
+
+        // Lock rates for this billing period if not already locked
+        // This ensures all bills in the same period use the same rates
+        $billingPeriod = $validated['billing_period'];
+        if (!\App\Models\BillingPeriodRate::isLocked($billingPeriod)) {
+            \App\Models\BillingPeriodRate::lockPeriod($billingPeriod, Auth::id());
         }
 
         $reading = MeterReading::create([

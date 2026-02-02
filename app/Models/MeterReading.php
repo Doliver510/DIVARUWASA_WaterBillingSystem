@@ -68,19 +68,26 @@ class MeterReading extends Model
 
     /**
      * Get the current billing period (format: YYYY-MM).
+     * 
+     * The billing period is named by the END month of the period.
+     * Example: Period from Jan 10 to Feb 10 = "2026-02" (February 2026)
+     * This matches the paper bill convention used by DIVARUWASA.
      */
     public static function getCurrentBillingPeriod(): string
     {
-        $startDay = (int) AppSetting::getValue('billing_cycle_start_day', 1);
+        $startDay = (int) AppSetting::getValue('billing_cycle_start_day', 10);
         $today = now();
 
-        // If we're past the start day, it's this month's billing period
-        // Otherwise, it's last month's billing period
-        if ($today->day >= $startDay) {
-            return $today->format('Y-m');
+        // Period is named by the END month
+        // If we're before the start day, we're still in the current month's billing period
+        // (period started last month, ends this month)
+        // If we're at or past the start day, we're in next month's billing period
+        // (period started this month, ends next month)
+        if ($today->day < $startDay) {
+            return $today->format('Y-m'); // Current month (period ends this month)
         }
 
-        return $today->subMonth()->format('Y-m');
+        return $today->addMonth()->format('Y-m'); // Next month (period ends next month)
     }
 
     /**
