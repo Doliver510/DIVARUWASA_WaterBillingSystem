@@ -207,4 +207,147 @@ class ConsumerController extends Controller
 
         return redirect()->route('consumers.index')->with('success', 'Consumer deleted successfully.');
     }
+
+    /**
+     * Display the ledger (transaction history) for a consumer.
+     */
+    public function ledger(Request $request, Consumer $consumer)
+    {
+        $user = auth()->user();
+
+        // Access control: Admin/Cashier can view any, Consumer can only view their own
+        if ($user->role->slug === 'consumer') {
+            if ($consumer->user_id !== $user->id) {
+                abort(403);
+            }
+        } elseif (!in_array($user->role->slug, ['admin', 'cashier'])) {
+            abort(403);
+        }
+
+        $consumer->load(['user', 'block']);
+
+        // Get year filter (default to current year)
+        $year = $request->input('year', now()->year);
+        $availableYears = $this->getAvailableYears($consumer);
+
+        // Build ledger entries
+        $ledgerEntries = $this->buildLedgerEntries($consumer, $year);
+
+        // Calculate totals
+        $totalDebits = collect($ledgerEntries)->sum('debit');
+        $totalCredits = collect($ledgerEntries)->sum('credit');
+        $currentBalance = $consumer->bills()->sum('balance');
+
+        return view('consumers.ledger', [
+            'consumer' => $consumer,
+            'ledgerEntries' => $ledgerEntries,
+            'year' => $year,
+            'availableYears' => $availableYears,
+            'totalDebits' => $totalDebits,
+            'totalCredits' => $totalCredits,
+            'currentBalance' => $currentBalance,
+        ]);
+    }
+
+    /**
+     * Get available years for the ledger filter.
+     */
+    private function getAvailableYears(Consumer $consumer): array
+    {
+        $billYears = $consumer->bills()->selectRaw('YEAR(period_from) as year')->distinct()->pluck('year');
+        $paymentYears = $consumer->payments()->selectRaw('YEAR(paid_at) as year')->distinct()->pluck('year');
+
+        $years = $billYears->merge($paymentYears)->unique()->sort()->reverse()->values()->toArray();
+
+        // Ensure current year is included
+        if (!in_array(now()->year, $years)) {
+            array_unshift($years, now()->year);
+        }
+
+        return $years;
+    }
+
+    /**
+     * Build ledger entries from bills, payments, and maintenance.
+     */
+    private function buildLedgerEntries(Consumer $consumer, int $year): array
+    {
+        $entries = [];
+
+        // Get bills for the year
+        $bills = $consumer->bills()
+            ->whereYear('period_from', $year)
+            ->orderBy('period_from')
+            ->get();
+
+        foreach ($bills as $bill) {
+            $entries[] = [
+                'date' => $bill->period_from,
+                'type' => 'BILL',
+                'description' => 'Water Bill - ' . $bill->billing_period_label,
+                'reference' => 'BILL-' . $bill->id,
+                'reference_id' => $bill->id,
+                'reference_route' => 'bills.show',
+                'debit' => (float) $bill->total_amount,
+                'credit' => 0,
+            ];
+        }
+
+        // Get payments for the year
+        $payments = $consumer->payments()
+            ->whereYear('paid_at', $year)
+            ->orderBy('paid_at')
+            ->get();
+
+        foreach ($payments as $payment) {
+            $description = $payment->isBillPayment()
+                ? 'Payment - ' . ($payment->bill?->billing_period_label ?? 'Bill')
+                : 'Payment - Maintenance #' . $payment->maintenance_request_id;
+
+            $entries[] = [
+                'date' => $payment->paid_at,
+                'type' => 'PAYMENT',
+                'description' => $description,
+                'reference' => $payment->receipt_number,
+                'reference_id' => $payment->id,
+                'reference_route' => 'payments.show',
+                'debit' => 0,
+                'credit' => (float) $payment->amount,
+            ];
+        }
+
+        // Get completed maintenance requests with material costs for the year
+        $maintenanceRequests = $consumer->maintenanceRequests()
+            ->where('status', 'completed')
+            ->where('payment_option', 'charge_to_bill')
+            ->whereYear('completed_at', $year)
+            ->where('total_material_cost', '>', 0)
+            ->orderBy('completed_at')
+            ->get();
+
+        foreach ($maintenanceRequests as $mr) {
+            $entries[] = [
+                'date' => $mr->completed_at,
+                'type' => 'MAINTENANCE',
+                'description' => 'Maintenance Materials - ' . $mr->request_type,
+                'reference' => 'MR-' . str_pad($mr->id, 4, '0', STR_PAD_LEFT),
+                'reference_id' => $mr->id,
+                'reference_route' => 'maintenance-requests.show',
+                'debit' => (float) $mr->total_material_cost,
+                'credit' => 0,
+            ];
+        }
+
+        // Sort by date
+        usort($entries, fn($a, $b) => $a['date'] <=> $b['date']);
+
+        // Calculate running balance
+        $runningBalance = 0;
+        foreach ($entries as &$entry) {
+            $runningBalance += $entry['debit'] - $entry['credit'];
+            $entry['balance'] = $runningBalance;
+        }
+
+        return $entries;
+    }
 }

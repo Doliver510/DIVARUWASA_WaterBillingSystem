@@ -60,6 +60,7 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
 
     // Consumers Management (Admin only, modals for create/edit)
     Route::resource('consumers', ConsumerController::class)->except(['create', 'edit']);
+    Route::get('/consumers/{consumer}/ledger', [ConsumerController::class, 'ledger'])->name('consumers.ledger');
 
     // Materials Management (Admin only)
     Route::resource('materials', MaterialController::class)->except(['show', 'create', 'edit']);

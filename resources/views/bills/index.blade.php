@@ -1,7 +1,19 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="page-pretitle">Billing</div>
-        <h2 class="page-title">All Bills</h2>
+        <div class="row align-items-center">
+            <div class="col">
+                <div class="page-pretitle">Billing</div>
+                <h2 class="page-title">All Bills</h2>
+            </div>
+            @if(auth()->user()->role->slug === 'consumer' && auth()->user()->consumer)
+                <div class="col-auto ms-auto">
+                    <a href="{{ route('consumers.ledger', auth()->user()->consumer) }}" class="btn btn-outline-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 19l16 0" /><path d="M4 15l4 -6l4 2l4 -5l4 4" /></svg>
+                        View My Ledger
+                    </a>
+                </div>
+            @endif
+        </div>
     </x-slot>
 
     <div class="row row-cards">

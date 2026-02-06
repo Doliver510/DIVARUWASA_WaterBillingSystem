@@ -75,14 +75,18 @@
                 </div>
             </div>
 
-            <!-- Placeholder for future billing info -->
+            {{-- Account Ledger Link --}}
             <div class="card mt-3">
                 <div class="card-header">
-                    <h3 class="card-title">{{ __('Billing Summary') }}</h3>
+                    <h3 class="card-title">{{ __('Account Ledger') }}</h3>
                 </div>
-                <div class="card-body text-center text-muted py-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-lg mb-2" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" /><path d="M9 17h6" /><path d="M9 13h6" /></svg>
-                    <p>{{ __('Billing information will be available after Phase 5 implementation.') }}</p>
+                <div class="card-body text-center py-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-lg mb-2 text-primary" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" /><path d="M9 17h6" /><path d="M9 13h6" /></svg>
+                    <p class="text-muted mb-3">{{ __('View complete transaction history including bills, payments, and maintenance charges.') }}</p>
+                    <a href="{{ route('consumers.ledger', $consumer) }}" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 19l16 0" /><path d="M4 15l4 -6l4 2l4 -5l4 4" /></svg>
+                        {{ __('View Ledger') }}
+                    </a>
                 </div>
             </div>
         </div>
