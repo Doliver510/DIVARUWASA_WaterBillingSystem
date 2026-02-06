@@ -61,7 +61,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Search OR# / Consumer</label>
-                            <input type="text" name="search" class="form-control" placeholder="OR Number or Name..." value="{{ $currentSearch }}">
+                            <input type="text" name="search" class="form-control" placeholder="Receipt No. or Name..." value="{{ $currentSearch }}">
                         </div>
                         <div class="col-md-3 d-flex align-items-end">
                             <button type="submit" class="btn btn-primary me-2">
@@ -82,7 +82,7 @@
                     <table class="table table-vcenter card-table">
                         <thead>
                             <tr>
-                                <th>OR Number</th>
+                                <th>Receipt No.</th>
                                 <th>Date & Time</th>
                                 <th>Consumer</th>
                                 <th>Payment For</th>
@@ -95,7 +95,7 @@
                             @forelse($payments as $payment)
                                 <tr>
                                     <td>
-                                        <span class="text-primary fw-bold">{{ $payment->or_number }}</span>
+                                        <span class="text-primary fw-bold">{{ $payment->receipt_number }}</span>
                                     </td>
                                     <td class="text-muted">
                                         {{ $payment->paid_at->format('M d, Y') }}<br>

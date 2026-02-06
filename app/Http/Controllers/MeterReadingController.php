@@ -47,8 +47,8 @@ class MeterReadingController extends Controller
                 return $consumer;
             });
 
-        // Get unique blocks for filter
-        $blocks = \App\Models\Block::orderBy('name')->pluck('name', 'id');
+        // Get unique blocks for filter (sorted numerically)
+        $blocks = \App\Models\Block::ordered()->pluck('name', 'id');
 
         // Get available billing periods for filter
         $periods = MeterReading::select('billing_period')

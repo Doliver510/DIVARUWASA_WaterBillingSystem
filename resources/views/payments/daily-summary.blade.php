@@ -110,7 +110,7 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>OR Number</th>
+                        <th>Receipt No.</th>
                         <th>Time</th>
                         <th>Consumer</th>
                         <th>Bill Period</th>
@@ -122,7 +122,7 @@
                     @forelse($payments as $index => $payment)
                         <tr>
                             <td class="text-muted">{{ $index + 1 }}</td>
-                            <td class="text-primary fw-bold">{{ $payment->or_number }}</td>
+                            <td class="text-primary fw-bold">{{ $payment->receipt_number }}</td>
                             <td class="text-muted">{{ $payment->paid_at->format('h:i A') }}</td>
                             <td>
                                 <div>{{ $payment->consumer->full_name }}</div>

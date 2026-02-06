@@ -47,7 +47,7 @@
     <table>
         <thead>
             <tr>
-                <th>OR Number</th>
+                <th>Receipt No.</th>
                 <th>Date & Time</th>
                 <th>Consumer ID</th>
                 <th>Consumer Name</th>
@@ -59,7 +59,7 @@
         <tbody>
             @foreach($payments as $payment)
                 <tr>
-                    <td>{{ $payment->or_number }}</td>
+                    <td>{{ $payment->receipt_number }}</td>
                     <td>{{ $payment->paid_at->format('M d, Y h:i A') }}</td>
                     <td>{{ $payment->consumer->id_no }}</td>
                     <td>{{ $payment->consumer->full_name }}</td>

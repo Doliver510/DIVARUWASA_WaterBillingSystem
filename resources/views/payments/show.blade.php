@@ -9,7 +9,7 @@
             </div>
             <div class="col">
                 <div class="page-pretitle">Payment Details</div>
-                <h2 class="page-title">{{ $payment->or_number }}</h2>
+                <h2 class="page-title">{{ $payment->receipt_number }}</h2>
             </div>
             <div class="col-auto ms-auto">
                 <a href="{{ route('payments.receipt', $payment) }}" target="_blank" class="btn btn-primary">
@@ -30,8 +30,8 @@
                 <div class="card-body">
                     <div class="datagrid">
                         <div class="datagrid-item">
-                            <div class="datagrid-title">Official Receipt No.</div>
-                            <div class="datagrid-content text-primary fw-bold">{{ $payment->or_number }}</div>
+                            <div class="datagrid-title">Receipt No.</div>
+                            <div class="datagrid-content text-primary fw-bold">{{ $payment->receipt_number }}</div>
                         </div>
                         <div class="datagrid-item">
                             <div class="datagrid-title">Date & Time</div>

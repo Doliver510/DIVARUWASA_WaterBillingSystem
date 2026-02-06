@@ -156,7 +156,7 @@ class MaintenanceRequestController extends Controller
                 // If "Pay Now" and there are material costs, create a payment record with OR
                 if ($validated['payment_option'] === 'pay_now' && $maintenanceRequest->total_material_cost > 0) {
                     $payment = Payment::create([
-                        'or_number' => Payment::generateOrNumber(),
+                        'receipt_number' => Payment::generateReceiptNumber(),
                         'payment_type' => Payment::TYPE_MAINTENANCE,
                         'bill_id' => null,
                         'maintenance_request_id' => $maintenanceRequest->id,
@@ -189,9 +189,9 @@ class MaintenanceRequestController extends Controller
         $statusLabel = MaintenanceRequest::STATUSES[$validated['status']];
         $message = "Request marked as {$statusLabel}.";
 
-        // If payment was created, show OR number
+        // If payment was created, show receipt number
         if ($payment) {
-            $message .= " Official Receipt: {$payment->or_number}";
+            $message .= " Receipt: {$payment->receipt_number}";
 
             return redirect()->route('payments.receipt', $payment)
                 ->with('success', $message);

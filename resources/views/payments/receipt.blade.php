@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Official Receipt - {{ $payment->or_number }}</title>
+    <title>Payment Receipt - {{ $payment->receipt_number }}</title>
     <style>
         * {
             margin: 0;
@@ -295,8 +295,8 @@
 
         {{-- OR Title --}}
         <div class="or-title">
-            <div class="title">Official Receipt</div>
-            <div class="or-number">{{ $payment->or_number }}</div>
+            <div class="title">Payment Receipt</div>
+            <div class="or-number">{{ $payment->receipt_number }}</div>
         </div>
 
         {{-- Payment Info --}}
@@ -420,7 +420,7 @@
             </div>
 
             <div class="note">
-                <p>This serves as your Official Receipt. Please keep this for your records.</p>
+                <p>This serves as your Payment Receipt. Please keep this for your records.</p>
                 <p>For inquiries: {{ $association['email'] }}</p>
             </div>
 

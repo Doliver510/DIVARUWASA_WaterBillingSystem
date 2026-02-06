@@ -12,7 +12,7 @@ class Payment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'or_number',
+        'receipt_number',
         'payment_type',
         'bill_id',
         'maintenance_request_id',
@@ -108,22 +108,22 @@ class Payment extends Model
     }
 
     /**
-     * Generate the next Official Receipt number.
-     * Format: OR-YYYYMMDD-XXXX (e.g., OR-20260111-0001)
+     * Generate the next Receipt number.
+     * Format: RCT-YYYYMMDD-XXXX (e.g., RCT-20260111-0001)
      */
-    public static function generateOrNumber(): string
+    public static function generateReceiptNumber(): string
     {
         $today = now()->format('Ymd');
-        $prefix = 'OR-'.$today.'-';
+        $prefix = 'RCT-'.$today.'-';
 
-        // Get the last OR number for today
-        $lastPayment = self::where('or_number', 'like', $prefix.'%')
-            ->orderByDesc('or_number')
+        // Get the last receipt number for today
+        $lastPayment = self::where('receipt_number', 'like', $prefix.'%')
+            ->orderByDesc('receipt_number')
             ->first();
 
         if ($lastPayment) {
             // Extract the sequence number and increment
-            $lastSequence = (int) substr($lastPayment->or_number, -4);
+            $lastSequence = (int) substr($lastPayment->receipt_number, -4);
             $nextSequence = $lastSequence + 1;
         } else {
             $nextSequence = 1;

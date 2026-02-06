@@ -29,7 +29,7 @@ class CollectionsExport implements FromCollection, ShouldAutoSize, WithHeadings,
     public function headings(): array
     {
         return [
-            'OR Number',
+            'Receipt No.',
             'Date',
             'Time',
             'Consumer ID',
@@ -43,7 +43,7 @@ class CollectionsExport implements FromCollection, ShouldAutoSize, WithHeadings,
     public function map($payment): array
     {
         return [
-            $payment->or_number,
+            $payment->receipt_number,
             $payment->paid_at->format('Y-m-d'),
             $payment->paid_at->format('H:i:s'),
             $payment->consumer->id_no,

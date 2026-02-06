@@ -160,7 +160,7 @@
                                         </td>
                                         <td>
                                             <div>{{ $payment->consumer->full_name }}</div>
-                                            <div class="text-muted small">{{ $payment->or_number }}</div>
+                                            <div class="text-muted small">{{ $payment->receipt_number }}</div>
                                         </td>
                                         <td class="text-end text-success fw-bold">₱{{ number_format($payment->amount, 2) }}</td>
                                         <td class="text-end text-muted small">{{ $payment->paid_at->diffForHumans() }}</td>
@@ -637,7 +637,7 @@
                             <tbody>
                                 @forelse($recentPayments as $payment)
                                     <tr>
-                                        <td class="text-primary">{{ $payment->or_number }}</td>
+                                        <td class="text-primary">{{ $payment->receipt_number }}</td>
                                         <td>{{ $payment->consumer->full_name }}</td>
                                         <td class="text-end text-success fw-bold">₱{{ number_format($payment->amount, 2) }}</td>
                                         <td class="text-muted">{{ $payment->paid_at->format('h:i A') }}</td>
@@ -868,7 +868,7 @@
                                 <tbody>
                                     @forelse($recentPayments as $payment)
                                         <tr>
-                                            <td>{{ $payment->or_number }}</td>
+                                            <td>{{ $payment->receipt_number }}</td>
                                             <td>{{ $payment->paid_at->format('M d, Y') }}</td>
                                             <td class="text-end text-success fw-bold">₱{{ number_format($payment->amount, 2) }}</td>
                                         </tr>

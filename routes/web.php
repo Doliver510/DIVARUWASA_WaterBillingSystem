@@ -45,10 +45,7 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
     // Water Rate Brackets (Admin only)
     Route::resource('rate-brackets', WaterRateBracketController::class)->except(['show', 'create', 'edit']);
 
-    // Block Management (Admin only)
-    Route::get('/settings/blocks', [BlockController::class, 'index'])->name('settings.blocks');
-    Route::post('/settings/blocks', [BlockController::class, 'store'])->name('settings.blocks.store');
-    Route::delete('/settings/blocks/{block}', [BlockController::class, 'destroy'])->name('settings.blocks.destroy');
+
 
     // Block Assignments (Admin only)
     Route::get('/settings/block-assignments', [BlockController::class, 'assignments'])->name('settings.block-assignments');

@@ -126,7 +126,7 @@
                     <table class="table table-vcenter card-table table-striped">
                         <thead>
                             <tr>
-                                <th>OR Number</th>
+                                <th>Receipt No.</th>
                                 <th>Date & Time</th>
                                 <th>Consumer</th>
                                 <th>Bill Period</th>
@@ -137,7 +137,7 @@
                         <tbody>
                             @forelse($payments as $payment)
                                 <tr>
-                                    <td class="text-primary fw-bold">{{ $payment->or_number }}</td>
+                                    <td class="text-primary fw-bold">{{ $payment->receipt_number }}</td>
                                     <td class="text-muted">{{ $payment->paid_at->format('M d, Y h:i A') }}</td>
                                     <td>
                                         <div>{{ $payment->consumer->full_name }}</div>

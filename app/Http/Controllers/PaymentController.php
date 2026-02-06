@@ -40,11 +40,11 @@ class PaymentController extends Controller
             $query->where('processed_by', $request->processed_by);
         }
 
-        // Filter by OR number search
+        // Filter by receipt number search
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('or_number', 'like', '%'.$search.'%')
+                $q->where('receipt_number', 'like', '%'.$search.'%')
                     ->orWhereHas('consumer', function ($cq) use ($search) {
                         $cq->where('id_no', 'like', '%'.$search.'%');
                     })
@@ -95,7 +95,7 @@ class PaymentController extends Controller
 
             // Create payment record
             $payment = Payment::create([
-                'or_number' => Payment::generateOrNumber(),
+                'receipt_number' => Payment::generateReceiptNumber(),
                 'payment_type' => Payment::TYPE_BILL,
                 'bill_id' => $bill->id,
                 'maintenance_request_id' => null,
@@ -115,7 +115,7 @@ class PaymentController extends Controller
 
         return redirect()
             ->route('bills.show', $bill)
-            ->with('success', 'Payment recorded successfully. Official Receipt generated.');
+            ->with('success', 'Payment recorded successfully. Receipt generated.');
     }
 
     /**

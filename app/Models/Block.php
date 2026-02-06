@@ -33,10 +33,10 @@ class Block extends Model
     }
 
     /**
-     * Scope to order by name.
+     * Scope to order blocks numerically (Block 0, Block 1, ... Block 10).
      */
     public function scopeOrdered($query)
     {
-        return $query->orderBy('name');
+        return $query->orderByRaw("CAST(SUBSTRING(name, 7) AS UNSIGNED)");
     }
 }

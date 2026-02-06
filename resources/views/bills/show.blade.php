@@ -200,7 +200,7 @@
                         <table class="table table-vcenter card-table">
                             <thead>
                                 <tr>
-                                    <th>OR Number</th>
+                                    <th>Receipt No.</th>
                                     <th>Date & Time</th>
                                     <th class="text-end">Amount</th>
                                     <th>Processed By</th>
@@ -210,7 +210,7 @@
                             <tbody>
                                 @foreach($bill->payments as $payment)
                                     <tr>
-                                        <td class="text-primary fw-bold">{{ $payment->or_number }}</td>
+                                        <td class="text-primary fw-bold">{{ $payment->receipt_number }}</td>
                                         <td class="text-muted">{{ $payment->paid_at->format('M d, Y h:i A') }}</td>
                                         <td class="text-end text-success fw-bold">₱{{ number_format($payment->amount, 2) }}</td>
                                         <td>{{ $payment->processedBy->full_name }}</td>
