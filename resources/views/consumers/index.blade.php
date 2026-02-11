@@ -60,8 +60,9 @@
                             <label class="form-label">{{ __('Status') }}</label>
                             <select name="status" class="form-select">
                                 <option value="">{{ __('All Statuses') }}</option>
-                                <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>{{ __('Active') }}</option>
-                                <option value="disconnected" {{ request('status') === 'disconnected' ? 'selected' : '' }}>{{ __('Disconnected') }}</option>
+                                @foreach(\App\Models\Consumer::STATUSES as $value => $label)
+                                    <option value="{{ $value }}" {{ request('status') === $value ? 'selected' : '' }}>{{ __($label) }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-md-3 d-flex align-items-end">
@@ -116,17 +117,10 @@
                                         <span class="text-muted">Lot {{ $consumer->lot_number }}</span>
                                     </td>
                                     <td>
-                                        @if($consumer->status === 'active')
-                                            <span class="badge bg-success-lt">
-                                                <span class="badge-dot bg-success me-1"></span>
-                                                {{ __('Active') }}
-                                            </span>
-                                        @else
-                                            <span class="badge bg-danger-lt">
-                                                <span class="badge-dot bg-danger me-1"></span>
-                                                {{ __('Disconnected') }}
-                                            </span>
-                                        @endif
+                                        <span class="badge bg-{{ $consumer->status_color }}-lt">
+                                            <span class="badge-dot bg-{{ $consumer->status_color }} me-1"></span>
+                                            {{ __($consumer->status_label) }}
+                                        </span>
                                     </td>
                                     <td>
                                         <div class="btn-list flex-nowrap">
@@ -207,21 +201,27 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label required">{{ __('Status') }}</label>
-                            <div class="form-selectgroup">
-                                <label class="form-selectgroup-item">
-                                    <input type="radio" name="status" value="active" class="form-selectgroup-input" checked>
-                                    <span class="form-selectgroup-label">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-                                        {{ __('Active') }}
-                                    </span>
-                                </label>
-                                <label class="form-selectgroup-item">
-                                    <input type="radio" name="status" value="disconnected" class="form-selectgroup-input" {{ old('status') === 'disconnected' ? 'checked' : '' }}>
-                                    <span class="form-selectgroup-label">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-danger" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
-                                        {{ __('Disconnected') }}
-                                    </span>
-                                </label>
+                            <div class="form-selectgroup form-selectgroup-boxes d-flex flex-column gap-2">
+                                @foreach(\App\Models\Consumer::STATUSES as $value => $label)
+                                    <label class="form-selectgroup-item flex-fill">
+                                        <input type="radio" name="status" value="{{ $value }}" class="form-selectgroup-input"
+                                            {{ (old('status', 'active') === $value) ? 'checked' : '' }}>
+                                        <div class="form-selectgroup-label d-flex align-items-center px-3 py-2">
+                                            <span class="badge bg-{{ (new \App\Models\Consumer(['status' => $value]))->status_color }}-lt me-2">
+                                                <span class="badge-dot bg-{{ (new \App\Models\Consumer(['status' => $value]))->status_color }} me-1"></span>
+                                                {{ __($label) }}
+                                            </span>
+                                            <span class="text-secondary small">
+                                                @switch($value)
+                                                    @case('active') {{ __('Water connection is live') }} @break
+                                                    @case('disconnected') {{ __('Temporarily disconnected due to non-payment') }} @break
+                                                    @case('cut_off') {{ __('Account closed (moved out / vacant lot)') }} @break
+                                                    @case('pulled_out') {{ __('Permanently removed due to violation') }} @break
+                                                @endswitch
+                                            </span>
+                                        </div>
+                                    </label>
+                                @endforeach
                             </div>
                         </div>
 
@@ -329,21 +329,27 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label required">{{ __('Status') }}</label>
-                                <div class="form-selectgroup">
-                                    <label class="form-selectgroup-item">
-                                        <input type="radio" name="status" value="active" class="form-selectgroup-input" {{ old('status', $consumer->status) === 'active' ? 'checked' : '' }}>
-                                        <span class="form-selectgroup-label">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
-                                            {{ __('Active') }}
-                                        </span>
-                                    </label>
-                                    <label class="form-selectgroup-item">
-                                        <input type="radio" name="status" value="disconnected" class="form-selectgroup-input" {{ old('status', $consumer->status) === 'disconnected' ? 'checked' : '' }}>
-                                        <span class="form-selectgroup-label">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon me-1 text-danger" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
-                                            {{ __('Disconnected') }}
-                                        </span>
-                                    </label>
+                                <div class="form-selectgroup form-selectgroup-boxes d-flex flex-column gap-2">
+                                    @foreach(\App\Models\Consumer::STATUSES as $value => $label)
+                                        <label class="form-selectgroup-item flex-fill">
+                                            <input type="radio" name="status" value="{{ $value }}" class="form-selectgroup-input"
+                                                {{ (old('status', $consumer->status) === $value) ? 'checked' : '' }}>
+                                            <div class="form-selectgroup-label d-flex align-items-center px-3 py-2">
+                                                <span class="badge bg-{{ (new \App\Models\Consumer(['status' => $value]))->status_color }}-lt me-2">
+                                                    <span class="badge-dot bg-{{ (new \App\Models\Consumer(['status' => $value]))->status_color }} me-1"></span>
+                                                    {{ __($label) }}
+                                                </span>
+                                                <span class="text-secondary small">
+                                                    @switch($value)
+                                                        @case('active') {{ __('Water connection is live') }} @break
+                                                        @case('disconnected') {{ __('Temporarily disconnected due to non-payment') }} @break
+                                                        @case('cut_off') {{ __('Account closed (moved out / vacant lot)') }} @break
+                                                        @case('pulled_out') {{ __('Permanently removed due to violation') }} @break
+                                                    @endswitch
+                                                </span>
+                                            </div>
+                                        </label>
+                                    @endforeach
                                 </div>
                             </div>
 

@@ -18,7 +18,7 @@ class AppSettingSeeder extends Seeder
             'minimum_bill_amount',
             'payment_due_days',
             'registration_fee',
-            'reconnection_fee',
+
             'association_name',
             'association_full_name',
             'association_address',
@@ -59,6 +59,12 @@ class AppSettingSeeder extends Seeder
                 'value' => '10',
                 'description' => 'Day of month when billing cycle starts',
                 'type' => 'number',
+            ],
+            [
+                'key' => 'reconnection_fee',
+                'value' => '50.00',
+                'description' => 'Fee charged when reconnecting a disconnected or cut off consumer',
+                'type' => 'currency',
             ],
         ];
 

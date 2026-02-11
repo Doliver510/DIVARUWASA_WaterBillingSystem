@@ -148,7 +148,7 @@ class BillingCalculatorServiceTest extends TestCase
             'id_no' => '001',
             'block_id' => $block->id,
             'lot_number' => 1,
-            'status' => 'Active',
+            'status' => 'active',
         ]);
     }
 

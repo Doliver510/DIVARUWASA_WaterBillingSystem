@@ -71,7 +71,7 @@ class ConsumerController extends Controller
             'id_no' => ['nullable', 'string', 'max:10', 'unique:consumers', 'regex:/^[0-9]+$/'],
             'block_id' => ['required', 'exists:blocks,id'],
             'lot_number' => ['required', 'integer', 'min:1'],
-            'status' => ['required', 'in:active,disconnected'],
+            'status' => ['required', 'in:active,disconnected,cut_off,pulled_out'],
         ]);
 
         // Auto-generate ID if not provided
@@ -121,7 +121,7 @@ class ConsumerController extends Controller
     /**
      * Display the specified consumer.
      */
-    public function show(Consumer $consumer)
+    public function show(Request $request, Consumer $consumer)
     {
         if (auth()->user()->role->slug !== 'admin') {
             abort(403);
@@ -129,7 +129,18 @@ class ConsumerController extends Controller
 
         $consumer->load(['user', 'block']);
 
-        return view('consumers.show', compact('consumer'));
+        // Build ledger data for inline display
+        $year = $request->input('year', now()->year);
+        $availableYears = $this->getAvailableYears($consumer);
+        $ledgerEntries = $this->buildLedgerEntries($consumer, $year);
+        $totalDebits = collect($ledgerEntries)->sum('debit');
+        $totalCredits = collect($ledgerEntries)->sum('credit');
+        $currentBalance = $consumer->bills()->sum('balance');
+
+        return view('consumers.show', compact(
+            'consumer', 'ledgerEntries', 'year', 'availableYears',
+            'totalDebits', 'totalCredits', 'currentBalance'
+        ));
     }
 
     /**
@@ -149,7 +160,7 @@ class ConsumerController extends Controller
             'id_no' => ['required', 'string', 'max:10', 'unique:consumers,id_no,'.$consumer->id, 'regex:/^[0-9]+$/'],
             'block_id' => ['required', 'exists:blocks,id'],
             'lot_number' => ['required', 'integer', 'min:1'],
-            'status' => ['required', 'in:active,disconnected'],
+            'status' => ['required', 'in:active,disconnected,cut_off,pulled_out'],
             'reset_password' => ['nullable', 'boolean'],
         ]);
 

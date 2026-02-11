@@ -8,6 +8,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Consumer extends Model
 {
+    // Status constants
+    const STATUS_ACTIVE = 'active';
+    const STATUS_DISCONNECTED = 'disconnected';
+    const STATUS_CUT_OFF = 'cut_off';
+    const STATUS_PULLED_OUT = 'pulled_out';
+
+    const STATUSES = [
+        self::STATUS_ACTIVE => 'Active',
+        self::STATUS_DISCONNECTED => 'Disconnected',
+        self::STATUS_CUT_OFF => 'Cut Off',
+        self::STATUS_PULLED_OUT => 'Pulled Out',
+    ];
+
     protected $fillable = [
         'user_id',
         'id_no',
@@ -21,6 +34,37 @@ class Consumer extends Model
         return [
             'lot_number' => 'integer',
         ];
+    }
+
+    /**
+     * Get the human-readable status label.
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return self::STATUSES[$this->status] ?? ucfirst($this->status);
+    }
+
+    /**
+     * Get the badge color class for the status.
+     */
+    public function getStatusColorAttribute(): string
+    {
+        return match ($this->status) {
+            self::STATUS_ACTIVE => 'success',
+            self::STATUS_DISCONNECTED => 'warning',
+            self::STATUS_CUT_OFF => 'secondary',
+            self::STATUS_PULLED_OUT => 'danger',
+            default => 'secondary',
+        };
+    }
+
+    /**
+     * Check if the consumer can be reconnected.
+     * Pulled out consumers cannot be reconnected.
+     */
+    public function isReconnectable(): bool
+    {
+        return $this->status !== self::STATUS_PULLED_OUT;
     }
 
     public function user(): BelongsTo

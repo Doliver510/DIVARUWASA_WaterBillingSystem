@@ -34,7 +34,7 @@ class MeterReadingController extends Controller
         // Get list of consumers for the entry form with reading status
         $consumers = Consumer::with(['user', 'block'])
             ->whereHas('user')
-            ->where('status', 'Active')
+            ->where('status', Consumer::STATUS_ACTIVE)
             ->orderBy('block_id')
             ->orderBy('id_no')
             ->get()

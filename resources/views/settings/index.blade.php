@@ -174,6 +174,39 @@
                     </div>
                 </div>
 
+                {{-- Fees & Charges Card --}}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="icon me-2 text-success" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M16.7 8a3 3 0 0 0 -2.7 -2h-4a3 3 0 0 0 0 6h4a3 3 0 0 1 0 6h-4a3 3 0 0 1 -2.7 -2" /><path d="M12 3v3m0 12v3" /></svg>
+                                Fees & Charges
+                            </h3>
+                            <p class="card-subtitle">Service fees for consumer account actions</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Reconnection Fee
+                                    <span class="form-label-description">Charged on reconnection</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₱</span>
+                                    <input type="number" step="1" name="settings[reconnection_fee]" 
+                                           class="form-control" 
+                                           value="{{ $settings->firstWhere('key', 'reconnection_fee')?->value ?? '50' }}"
+                                           required>
+                                </div>
+                                <small class="text-muted">
+                                    Fee charged when reconnecting a disconnected or cut off consumer.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Save Button - Opens Confirmation Modal --}}
                 <div class="d-flex justify-content-end">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">
@@ -207,6 +240,10 @@
                     <div class="mb-3">
                         <h5 class="mb-1">Billing Cycle</h5>
                         <p class="text-muted mb-0 small">Determines the start day of each billing period. Readings taken on this day mark the end of one period and start of the next.</p>
+                    </div>
+                    <div class="mb-3">
+                        <h5 class="mb-1">Reconnection Fee</h5>
+                        <p class="text-muted mb-0 small">Fee charged when a disconnected or cut off consumer is reconnected to the water supply.</p>
                     </div>
                     <hr>
                     <div class="mb-0">
