@@ -457,29 +457,31 @@ class BillingCalculatorServiceTest extends TestCase
      * Test: No penalty when no overdue bills.
      * 
      * Scenario: Consumer has no overdue bills
-     * Expected: Penalty = ₱0.00
+     * Expected: applyPenaltiesToOverdueBills does nothing
      */
     public function test_penalty_not_applied_when_no_overdue_bills(): void
     {
         $consumer = $this->createConsumer();
         
-        $penalty = $this->billingService->calculatePenalty($consumer->id);
+        // Should not throw, just does nothing
+        $this->billingService->applyPenaltiesToOverdueBills($consumer->id);
         
-        $this->assertEquals(0.00, $penalty);
+        // No bills exist, so nothing to check — just confirm no error
+        $this->assertTrue(true);
     }
 
     /**
-     * Test: Penalty applied when overdue bill exists.
+     * Test: Penalty applied to overdue bill directly.
      * 
-     * Scenario: Consumer has an overdue bill
-     * Expected: Penalty = ₱50.00 (from settings)
+     * Scenario: Consumer has an overdue bill of ₱150
+     * Expected: Penalty of ₱50 is added to the overdue bill → balance becomes ₱200
      */
     public function test_penalty_applied_when_overdue_bill_exists(): void
     {
         $consumer = $this->createConsumer();
         
         // Create an overdue bill
-        Bill::create([
+        $overdueBill = Bill::create([
             'consumer_id' => $consumer->id,
             'billing_period' => '2025-10',
             'period_from' => '2025-09-10',
@@ -500,9 +502,16 @@ class BillingCalculatorServiceTest extends TestCase
             'due_date_end' => '2025-11-05',
         ]);
         
-        $penalty = $this->billingService->calculatePenalty($consumer->id);
+        // Apply penalties to overdue bills
+        $this->billingService->applyPenaltiesToOverdueBills($consumer->id);
         
-        $this->assertEquals(50.00, $penalty);
+        // Refresh the overdue bill from database
+        $overdueBill->refresh();
+        
+        // Penalty should be applied to the overdue bill itself
+        $this->assertEquals(50.00, $overdueBill->penalty);
+        $this->assertEquals(200.00, $overdueBill->total_amount); // 150 + 50
+        $this->assertEquals(200.00, $overdueBill->balance); // 200 - 0 paid
     }
 
     // =========================================================================
@@ -681,7 +690,11 @@ class BillingCalculatorServiceTest extends TestCase
     }
 
     /**
-     * Test: Bill generation with penalty from overdue bill.
+     * Test: Bill generation applies penalty to overdue bill, not to new bill.
+     * 
+     * Scenario: Consumer has an overdue bill of ₱150. New reading generates a new bill.
+     * Expected: Penalty (₱50) is added to the overdue bill. New bill has penalty=0,
+     *           but arrears include the penalty-inclusive balance (₱200).
      */
     public function test_bill_generation_with_penalty(): void
     {
@@ -714,10 +727,13 @@ class BillingCalculatorServiceTest extends TestCase
         
         $bill = $this->billingService->generateBillFromReading($reading);
         
-        // Penalty should be applied
-        $this->assertEquals(50.00, $bill->penalty);
+        // New bill should have penalty=0 (penalty goes on the overdue bill)
+        $this->assertEquals(0.00, $bill->penalty);
         
-        // Total = water (₱150) + arrears (₱150) + penalty (₱50) = ₱350
+        // Arrears should include the penalty-inclusive balance: ₱150 + ₱50 penalty = ₱200
+        $this->assertEquals(200.00, $bill->arrears);
+        
+        // Total = water (₱150) + arrears (₱200) + penalty (₱0) = ₱350
         $this->assertEquals(350.00, $bill->total_amount);
     }
 

@@ -37,14 +37,19 @@ class BillingCalculatorService
                 $reading->billing_period
             );
 
-            // Get arrears (previous unpaid balances)
+            // Apply penalties to any overdue bills BEFORE calculating arrears
+            // This ensures the penalty is on the overdue bill itself (e.g., ₱200 bill becomes ₱250)
+            // and the arrears calculation picks up the penalty-inclusive balance
+            $this->applyPenaltiesToOverdueBills($reading->consumer_id);
+
+            // Get arrears (previous unpaid balances — now includes penalties)
             $arrears = Bill::getArrears($reading->consumer_id, $reading->billing_period);
 
             // Get pending material charges (charge_to_bill)
             $otherCharges = $this->getPendingMaterialCharges($reading->consumer_id);
 
-            // Check if penalty should be applied (from previous overdue bills)
-            $penalty = $this->calculatePenalty($reading->consumer_id);
+            // Penalty is 0 on new bills — penalties are applied to the overdue bills directly
+            $penalty = 0;
 
             // Calculate totals
             $totalAmount = $waterCharge + $arrears + $penalty + $otherCharges;
@@ -180,20 +185,18 @@ class BillingCalculatorService
     }
 
     /**
-     * Calculate penalty for previous overdue bills.
+     * Apply penalties to overdue bills for a consumer.
+     * Penalty is added directly to the overdue bill (e.g., ₱200 bill → ₱250).
      */
-    public function calculatePenalty(int $consumerId): float
+    public function applyPenaltiesToOverdueBills(int $consumerId): void
     {
-        // Check if there are any overdue bills
-        $hasOverdue = Bill::where('consumer_id', $consumerId)
+        $overdueBills = Bill::where('consumer_id', $consumerId)
             ->where('status', 'overdue')
-            ->exists();
+            ->get();
 
-        if ($hasOverdue) {
-            return (float) AppSetting::getValue('penalty_fee', 50);
+        foreach ($overdueBills as $bill) {
+            $bill->applyPenalty(); // Only applies if not already applied
         }
-
-        return 0;
     }
 
     /**
