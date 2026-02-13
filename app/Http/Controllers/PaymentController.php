@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePaymentRequest;
 use App\Models\AppSetting;
 use App\Models\Bill;
+use App\Models\Consumer;
+use App\Models\ConsumerMeter;
 use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -216,5 +218,52 @@ class PaymentController extends Controller
             'totalAmount' => $payments->sum('amount'),
             'totalCount' => $payments->count(),
         ]);
+    }
+
+    /**
+     * Pay remaining meter balance early.
+     */
+    public function payMeterBalance(Request $request, ConsumerMeter $consumerMeter): RedirectResponse
+    {
+        $user = Auth::user();
+
+        if (! in_array($user->role->slug, ['admin', 'cashier'])) {
+            abort(403);
+        }
+
+        if ($consumerMeter->fully_paid) {
+            return back()->with('error', 'This meter has already been fully paid.');
+        }
+
+        $remainingBalance = $consumerMeter->getRemainingBalance();
+
+        if ($remainingBalance <= 0) {
+            return back()->with('error', 'No remaining balance for this meter.');
+        }
+
+        $payment = null;
+
+        DB::transaction(function () use ($consumerMeter, $remainingBalance, &$payment) {
+            $payment = Payment::create([
+                'receipt_number' => Payment::generateReceiptNumber(),
+                'payment_type' => Payment::TYPE_METER,
+                'bill_id' => null,
+                'maintenance_request_id' => $consumerMeter->maintenance_request_id,
+                'consumer_id' => $consumerMeter->consumer_id,
+                'processed_by' => Auth::id(),
+                'amount' => $remainingBalance,
+                'balance_before' => $remainingBalance,
+                'balance_after' => 0,
+                'payment_method' => 'cash',
+                'remarks' => 'Meter payment (early payoff) - Meter #' . $consumerMeter->meter_number,
+                'paid_at' => now(),
+            ]);
+
+            $consumerMeter->markFullyPaid($remainingBalance);
+        });
+
+        return redirect()
+            ->route('payments.receipt', $payment)
+            ->with('success', 'Meter payment recorded. Receipt: ' . $payment->receipt_number);
     }
 }

@@ -15,10 +15,12 @@ class MaintenanceRequest extends Model
         'description',
         'status',
         'payment_option',
+        'new_meter_number',
         'total_material_cost',
         'remarks',
         'requested_at',
         'completed_at',
+        'billed_at',
     ];
 
     protected function casts(): array

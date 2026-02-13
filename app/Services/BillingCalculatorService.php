@@ -6,6 +6,7 @@ use App\Mail\BillGeneratedMail;
 use App\Models\AppSetting;
 use App\Models\Bill;
 use App\Models\Consumer;
+use App\Models\ConsumerMeter;
 use App\Models\MaintenanceRequest;
 use App\Models\MeterReading;
 use App\Models\WaterRateBracket;
@@ -48,11 +49,14 @@ class BillingCalculatorService
             // Get pending material charges (charge_to_bill)
             $otherCharges = $this->getPendingMaterialCharges($reading->consumer_id);
 
+            // Get pending meter installment (staggered payment for new meter)
+            $meterInstallment = $this->getPendingMeterInstallment($reading->consumer_id);
+
             // Penalty is 0 on new bills — penalties are applied to the overdue bills directly
             $penalty = 0;
 
             // Calculate totals
-            $totalAmount = $waterCharge + $arrears + $penalty + $otherCharges;
+            $totalAmount = $waterCharge + $arrears + $penalty + $otherCharges + $meterInstallment;
             $balance = $totalAmount;
 
             // Create the bill
@@ -69,6 +73,7 @@ class BillingCalculatorService
                 'arrears' => $arrears,
                 'penalty' => $penalty,
                 'other_charges' => $otherCharges,
+                'meter_installment' => $meterInstallment,
                 'total_amount' => $totalAmount,
                 'amount_paid' => 0,
                 'balance' => $balance,
@@ -85,6 +90,11 @@ class BillingCalculatorService
             // Mark material charges as billed
             $this->markMaterialChargesAsBilled($reading->consumer_id, $bill->id);
 
+            // Mark meter installment as billed
+            if ($meterInstallment > 0) {
+                $this->markMeterInstallmentBilled($reading->consumer_id, $meterInstallment);
+            }
+
             // Send bill email to consumer
             $this->sendBillEmail($bill);
 
@@ -100,8 +110,8 @@ class BillingCalculatorService
         // Recalculate water charge
         $waterCharge = WaterRateBracket::calculateCharge($reading->consumption);
 
-        // Keep existing arrears, penalty, other_charges
-        $totalAmount = $waterCharge + $bill->arrears + $bill->penalty + $bill->other_charges;
+        // Keep existing arrears, penalty, other_charges, meter_installment
+        $totalAmount = $waterCharge + $bill->arrears + $bill->penalty + $bill->other_charges + $bill->meter_installment;
         $balance = $totalAmount - $bill->amount_paid;
 
         $bill->update([
@@ -205,6 +215,43 @@ class BillingCalculatorService
     public function getChargeBreakdown(int $consumption): array
     {
         return WaterRateBracket::getChargeBreakdown($consumption);
+    }
+
+    /**
+     * Get pending meter installment for a consumer.
+     * Returns the next monthly installment amount if the consumer has an unpaid meter.
+     */
+    public function getPendingMeterInstallment(int $consumerId): float
+    {
+        $activeMeter = ConsumerMeter::where('consumer_id', $consumerId)
+            ->whereNull('removed_at')
+            ->where('fully_paid', false)
+            ->where('meter_cost', '>', 0)
+            ->latest('installed_at')
+            ->first();
+
+        if (! $activeMeter || ! $activeMeter->hasPendingInstallments()) {
+            return 0;
+        }
+
+        return (float) $activeMeter->installment_amount;
+    }
+
+    /**
+     * Mark a meter installment as billed (increment counter).
+     */
+    public function markMeterInstallmentBilled(int $consumerId, float $amount): void
+    {
+        $activeMeter = ConsumerMeter::where('consumer_id', $consumerId)
+            ->whereNull('removed_at')
+            ->where('fully_paid', false)
+            ->where('meter_cost', '>', 0)
+            ->latest('installed_at')
+            ->first();
+
+        if ($activeMeter) {
+            $activeMeter->markInstallmentBilled($amount);
+        }
     }
 
     /**

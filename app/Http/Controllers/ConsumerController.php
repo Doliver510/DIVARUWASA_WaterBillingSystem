@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Block;
 use App\Models\Consumer;
+use App\Models\ConsumerMeter;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -69,6 +70,7 @@ class ConsumerController extends Controller
             'last_name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'string', 'lowercase', 'email', 'max:255', 'unique:users'],
             'id_no' => ['nullable', 'string', 'max:10', 'unique:consumers', 'regex:/^[0-9]+$/'],
+            'meter_number' => ['nullable', 'string', 'max:50'],
             'block_id' => ['required', 'exists:blocks,id'],
             'lot_number' => ['required', 'integer', 'min:1'],
             'status' => ['required', 'in:active,disconnected,cut_off,pulled_out'],
@@ -100,8 +102,19 @@ class ConsumerController extends Controller
                 'id_no' => $idNo,
                 'block_id' => $validated['block_id'],
                 'lot_number' => $validated['lot_number'],
+                'meter_number' => $validated['meter_number'] ?? null,
                 'status' => $validated['status'],
             ]);
+
+            // Create initial meter record if meter number provided
+            if (! empty($validated['meter_number'])) {
+                $consumer = Consumer::where('user_id', $user->id)->first();
+                ConsumerMeter::create([
+                    'consumer_id' => $consumer->id,
+                    'meter_number' => $validated['meter_number'],
+                    'installed_at' => now()->toDateString(),
+                ]);
+            }
         });
 
         return redirect()->route('consumers.index')->with('success', 'Consumer created successfully. Default password: '.$defaultPassword);
@@ -127,7 +140,9 @@ class ConsumerController extends Controller
             abort(403);
         }
 
-        $consumer->load(['user', 'block']);
+        $consumer->load(['user', 'block', 'meters' => function ($q) {
+            $q->orderByDesc('installed_at');
+        }]);
 
         // Build ledger data for inline display
         $year = $request->input('year', now()->year);
@@ -158,6 +173,7 @@ class ConsumerController extends Controller
             'last_name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$consumer->user_id],
             'id_no' => ['required', 'string', 'max:10', 'unique:consumers,id_no,'.$consumer->id, 'regex:/^[0-9]+$/'],
+            'meter_number' => ['nullable', 'string', 'max:50'],
             'block_id' => ['required', 'exists:blocks,id'],
             'lot_number' => ['required', 'integer', 'min:1'],
             'status' => ['required', 'in:active,disconnected,cut_off,pulled_out'],
@@ -194,6 +210,7 @@ class ConsumerController extends Controller
                 'id_no' => $idNo,
                 'block_id' => $validated['block_id'],
                 'lot_number' => $validated['lot_number'],
+                'meter_number' => $validated['meter_number'] ?? $consumer->meter_number,
                 'status' => $validated['status'],
             ]);
         });

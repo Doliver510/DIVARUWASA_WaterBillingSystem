@@ -293,6 +293,93 @@
                                         </dl>
                                     </div>
                                 </div>
+
+                                <hr class="my-3">
+
+                                {{-- Meter Information --}}
+                                <div class="row">
+                                    <div class="col-12">
+                                        <h4 class="subheader text-azure mb-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="icon me-1" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 3v4" /><path d="M12 21v-2" /><path d="M3 12h4" /><path d="M17 12h4" /><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /></svg>
+                                            {{ __('Meter Information') }}
+                                        </h4>
+                                        
+                                        @if($consumer->activeMeter)
+                                            <div class="card bg-light mb-3">
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="mb-2"><strong>Current Meter No:</strong> <span class="text-azure">{{ $consumer->meter_number }}</span></div>
+                                                            <div class="mb-2"><strong>Installed Date:</strong> {{ \Carbon\Carbon::parse($consumer->activeMeter->installed_at)->format('M d, Y') }}</div>
+                                                            <div class="mb-2"><strong>Cost:</strong> ₱{{ number_format($consumer->activeMeter->meter_cost, 2) }}</div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="mb-2"><strong>Payment Status:</strong> 
+                                                                @if($consumer->activeMeter->fully_paid)
+                                                                    <span class="badge bg-success-lt">Fully Paid</span>
+                                                                @else
+                                                                    <span class="badge bg-orange-lt">Paying Installments</span>
+                                                                @endif
+                                                            </div>
+                                                            @if(!$consumer->activeMeter->fully_paid)
+                                                                <div class="mb-2"><strong>Remaining Balance:</strong> ₱{{ number_format($consumer->activeMeter->remaining_balance, 2) }}</div>
+                                                                <div class="mb-2"><strong>Installments:</strong> {{ $consumer->activeMeter->installments_billed }} / {{ $consumer->activeMeter->installment_months }} billed</div>
+                                                                
+                                                                <form action="{{ route('meters.pay-balance', $consumer->activeMeter->id) }}" method="POST" class="mt-3">
+                                                                    @csrf
+                                                                    <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Process full payment of ₱{{ number_format($consumer->activeMeter->remaining_balance, 2) }} for this meter?')">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 9h.01" /><path d="M11 12h1v4h1" /></svg>
+                                                                        Pay Remaining Balance
+                                                                    </button>
+                                                                </form>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div class="alert alert-info">No active meter record found.</div>
+                                        @endif
+
+                                        <h5 class="subheader mt-4">Meter History</h5>
+                                        <div class="table-responsive">
+                                            <table class="table table-vcenter card-table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Meter No.</th>
+                                                        <th>Installed</th>
+                                                        <th>Removed</th>
+                                                        <th>Reason</th>
+                                                        <th>Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @forelse($consumer->meters()->orderBy('installed_at', 'desc')->get() as $meter)
+                                                        <tr>
+                                                            <td>{{ $meter->meter_number }}</td>
+                                                            <td>{{ \Carbon\Carbon::parse($meter->installed_at)->format('M d, Y') }}</td>
+                                                            <td>{{ $meter->removed_at ? \Carbon\Carbon::parse($meter->removed_at)->format('M d, Y') : '-' }}</td>
+                                                            <td>{{ $meter->removal_reason ?? '-' }}</td>
+                                                            <td>
+                                                                @if($meter->removed_at)
+                                                                    <span class="badge bg-secondary-lt">Archived</span>
+                                                                @elseif($meter->fully_paid)
+                                                                    <span class="badge bg-success-lt">Active (Paid)</span>
+                                                                @else
+                                                                    <span class="badge bg-orange-lt">Active (Paying)</span>
+                                                                @endif
+                                                            </td>
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="5" class="text-center text-muted">No meter history available.</td>
+                                                        </tr>
+                                                    @endforelse
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -199,6 +199,15 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label class="form-label">{{ __('Meter Number') }} <span class="text-muted">({{ __('Optional') }})</span></label>
+                                    <input type="text" name="meter_number" class="form-control" value="{{ old('meter_number') }}" placeholder="e.g., WM-2024-0001" maxlength="50">
+                                    <small class="form-hint">{{ __('Physical serial number on the water meter device.') }}</small>
+                                </div>
+                            </div>
+                        </div>
                         <div class="mb-3">
                             <label class="form-label required">{{ __('Status') }}</label>
                             <div class="form-selectgroup form-selectgroup-boxes d-flex flex-column gap-2">
@@ -324,6 +333,15 @@
                                     <div class="mb-3">
                                         <label class="form-label required">{{ __('Lot Number') }}</label>
                                         <input type="number" name="lot_number" class="form-control" value="{{ old('lot_number', $consumer->lot_number) }}" required min="1" step="1">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ __('Meter Number') }} <span class="text-muted">({{ __('Optional') }})</span></label>
+                                        <input type="text" name="meter_number" class="form-control" value="{{ old('meter_number', $consumer->meter_number) }}" placeholder="e.g., WM-2024-0001" maxlength="50">
+                                        <small class="form-hint">{{ __('Physical serial number on the water meter device.') }}</small>
                                     </div>
                                 </div>
                             </div>

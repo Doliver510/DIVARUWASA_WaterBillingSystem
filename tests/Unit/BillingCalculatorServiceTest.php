@@ -760,4 +760,147 @@ class BillingCalculatorServiceTest extends TestCase
         $directCharge = WaterRateBracket::calculateCharge(25);
         $this->assertEquals($directCharge, $breakdown['total']);
     }
+
+    // =========================================================================
+    // METER INSTALLMENT TESTS
+    // =========================================================================
+
+    /**
+     * Test: Meter installment is included in bill as separate line item.
+     * 
+     * Scenario: Consumer has a new meter costing ₱1,200, divided over 4 months.
+     * Expected: Bill includes meter_installment of ₱300.00.
+     */
+    public function test_meter_installment_calculated_on_bill(): void
+    {
+        $consumer = $this->createConsumer();
+
+        // Create a meter with cost and installment plan
+        \App\Models\ConsumerMeter::create([
+            'consumer_id' => $consumer->id,
+            'meter_number' => 'MTR-001',
+            'installed_at' => now()->subMonth()->toDateString(),
+            'meter_cost' => 1200.00,
+            'installment_months' => 4,
+            'installments_billed' => 0,
+            'installment_amount' => 300.00, // 1200 / 4
+            'total_paid' => 0,
+            'fully_paid' => false,
+        ]);
+
+        // Verify getPendingMeterInstallment returns the correct amount
+        $installment = $this->billingService->getPendingMeterInstallment($consumer->id);
+        $this->assertEquals(300.00, $installment);
+
+        // Generate a bill — verify meter_installment is included
+        $reading = $this->createMeterReading($consumer, 100, 115, '2026-01');
+        $bill = $this->billingService->generateBillFromReading($reading);
+
+        $this->assertEquals(300.00, (float) $bill->meter_installment);
+        // water charge + meter installment (₱300)
+        $expectedWaterCharge = \App\Models\BillingPeriodRate::calculateChargeForPeriod(15, '2026-01');
+        $this->assertEquals($expectedWaterCharge + 300.00, (float) $bill->total_amount);
+    }
+
+    /**
+     * Test: Meter installments stop after 4 months.
+     * 
+     * Scenario: Consumer already billed 4 times for meter.
+     * Expected: No more installments on 5th bill.
+     */
+    public function test_meter_installment_stops_after_4_months(): void
+    {
+        $consumer = $this->createConsumer();
+
+        // Meter with all 4 installments already billed
+        \App\Models\ConsumerMeter::create([
+            'consumer_id' => $consumer->id,
+            'meter_number' => 'MTR-002',
+            'installed_at' => now()->subMonths(5)->toDateString(),
+            'meter_cost' => 1500.00,
+            'installment_months' => 4,
+            'installments_billed' => 4,
+            'installment_amount' => 375.00,
+            'total_paid' => 1500.00,
+            'fully_paid' => true,
+        ]);
+
+        $installment = $this->billingService->getPendingMeterInstallment($consumer->id);
+        $this->assertEquals(0, $installment);
+    }
+
+    /**
+     * Test: Meter installments stop when paid early.
+     * 
+     * Scenario: Consumer paid remaining meter balance after 2 installments.
+     * Expected: No more installments on subsequent bills.
+     */
+    public function test_meter_installment_stops_when_paid_early(): void
+    {
+        $consumer = $this->createConsumer();
+
+        // Meter: 2 of 4 installments billed, then paid in full early
+        \App\Models\ConsumerMeter::create([
+            'consumer_id' => $consumer->id,
+            'meter_number' => 'MTR-003',
+            'installed_at' => now()->subMonths(3)->toDateString(),
+            'meter_cost' => 1200.00,
+            'installment_months' => 4,
+            'installments_billed' => 2,
+            'installment_amount' => 300.00,
+            'total_paid' => 1200.00, // Paid full amount early
+            'fully_paid' => true,
+        ]);
+
+        $installment = $this->billingService->getPendingMeterInstallment($consumer->id);
+        $this->assertEquals(0, $installment);
+    }
+
+    /**
+     * Test: Maintenance materials still billed in full alongside meter installments.
+     * 
+     * Scenario: Consumer has both pending material charges AND meter installments.
+     * Expected: Materials billed in full as other_charges, meter as separate meter_installment.
+     */
+    public function test_maintenance_materials_billed_in_full_with_meter_installment(): void
+    {
+        $consumer = $this->createConsumer();
+
+        // Active meter with pending installment
+        \App\Models\ConsumerMeter::create([
+            'consumer_id' => $consumer->id,
+            'meter_number' => 'MTR-004',
+            'installed_at' => now()->subMonth()->toDateString(),
+            'meter_cost' => 1500.00,
+            'installment_months' => 4,
+            'installments_billed' => 0,
+            'installment_amount' => 375.00,
+            'total_paid' => 0,
+            'fully_paid' => false,
+        ]);
+
+        // Also has pending material charges (pipe repair — billed in full)
+        MaintenanceRequest::create([
+            'consumer_id' => $consumer->id,
+            'request_type' => 'pipe_leak',
+            'description' => 'Pipe repair',
+            'status' => 'completed',
+            'payment_option' => 'charge_to_bill',
+            'total_material_cost' => 500.00,
+            'requested_at' => now()->subWeek(),
+            'completed_at' => now()->subDay(),
+        ]);
+
+        // Generate bill
+        $reading = $this->createMeterReading($consumer, 200, 210, '2026-02');
+        $bill = $this->billingService->generateBillFromReading($reading);
+
+        // Materials: ₱500 in full as other_charges
+        $this->assertEquals(500.00, (float) $bill->other_charges);
+        // Meter: ₱375 as separate meter_installment
+        $this->assertEquals(375.00, (float) $bill->meter_installment);
+        // Total = water + materials + meter installment
+        $waterCharge = \App\Models\BillingPeriodRate::calculateChargeForPeriod(10, '2026-02');
+        $this->assertEquals($waterCharge + 500.00 + 375.00, (float) $bill->total_amount);
+    }
 }

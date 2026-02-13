@@ -201,6 +201,12 @@
                                 </select>
                             </div>
 
+                            <div class="mb-3" id="new-meter-group" style="display: none;">
+                                <label class="form-label required">{{ __('New Meter Number') }}</label>
+                                <input type="text" name="new_meter_number" class="form-control" placeholder="Enter new meter serial number">
+                                <small class="form-hint">{{ __('Required to complete meter replacement.') }}</small>
+                            </div>
+
                             <div class="mb-3" id="payment-option-group" style="display: none;">
                                 <label class="form-label required">{{ __('Payment Option') }}</label>
                                 <div class="form-selectgroup form-selectgroup-boxes d-flex flex-column">
@@ -312,8 +318,20 @@
         function togglePaymentOption() {
             const statusSelect = document.getElementById('status-select');
             const paymentGroup = document.getElementById('payment-option-group');
+            const newMeterGroup = document.getElementById('new-meter-group');
+            const requestType = '{{ $request->request_type }}';
+
             if (statusSelect && paymentGroup) {
-                paymentGroup.style.display = statusSelect.value === 'completed' ? 'block' : 'none';
+                const isCompleted = statusSelect.value === 'completed';
+                paymentGroup.style.display = isCompleted ? 'block' : 'none';
+                
+                if (newMeterGroup) {
+                    newMeterGroup.style.display = (isCompleted && requestType === 'meter_replacement') ? 'block' : 'none';
+                    const input = newMeterGroup.querySelector('input');
+                    if (input) {
+                        input.required = (isCompleted && requestType === 'meter_replacement');
+                    }
+                }
             }
         }
         // Run on page load

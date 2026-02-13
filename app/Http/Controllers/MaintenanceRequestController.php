@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Consumer;
+use App\Models\ConsumerMeter;
 use App\Models\MaintenanceMaterial;
 use App\Models\MaintenanceRequest;
 use App\Models\Material;
@@ -137,11 +138,18 @@ class MaintenanceRequestController extends Controller
      */
     public function updateStatus(Request $request, MaintenanceRequest $maintenanceRequest): RedirectResponse
     {
-        $validated = $request->validate([
+        $rules = [
             'status' => 'required|in:pending,in_progress,completed,cancelled',
             'payment_option' => 'required_if:status,completed|nullable|in:pay_now,charge_to_bill',
             'remarks' => 'nullable|string',
-        ]);
+        ];
+
+        // If completing a meter replacement, require new meter number
+        if ($request->status === 'completed' && $maintenanceRequest->request_type === 'meter_replacement') {
+            $rules['new_meter_number'] = 'required|string|max:50';
+        }
+
+        $validated = $request->validate($rules);
 
         $payment = null;
 
@@ -169,6 +177,46 @@ class MaintenanceRequestController extends Controller
                         'remarks' => 'Payment for maintenance materials - Request #'.$maintenanceRequest->id,
                         'paid_at' => now(),
                     ]);
+                }
+
+                // Handle meter replacement: archive old meter, create new one
+                if ($maintenanceRequest->request_type === 'meter_replacement' && ! empty($validated['new_meter_number'])) {
+                    $consumer = Consumer::find($maintenanceRequest->consumer_id);
+                    $maintenanceRequest->new_meter_number = $validated['new_meter_number'];
+
+                    // Archive old meter (mark as removed)
+                    ConsumerMeter::where('consumer_id', $consumer->id)
+                        ->whereNull('removed_at')
+                        ->update([
+                            'removed_at' => now()->toDateString(),
+                            'removal_reason' => 'replacement',
+                        ]);
+
+                    // Calculate installment: meter cost ÷ 4 months
+                    $meterCost = (float) $maintenanceRequest->total_material_cost;
+                    $installmentMonths = 4;
+                    $installmentAmount = $meterCost > 0 ? round($meterCost / $installmentMonths, 2) : 0;
+
+                    // Determine if meter is already paid (pay_now) or needs installments
+                    $fullyPaid = $validated['payment_option'] === 'pay_now';
+                    $totalPaid = $fullyPaid ? $meterCost : 0;
+
+                    // Create new meter record
+                    ConsumerMeter::create([
+                        'consumer_id' => $consumer->id,
+                        'meter_number' => $validated['new_meter_number'],
+                        'installed_at' => now()->toDateString(),
+                        'maintenance_request_id' => $maintenanceRequest->id,
+                        'meter_cost' => $meterCost,
+                        'installment_months' => $installmentMonths,
+                        'installments_billed' => 0,
+                        'installment_amount' => $installmentAmount,
+                        'total_paid' => $totalPaid,
+                        'fully_paid' => $fullyPaid,
+                    ]);
+
+                    // Update consumer's active meter number
+                    $consumer->update(['meter_number' => $validated['new_meter_number']]);
                 }
             }
 

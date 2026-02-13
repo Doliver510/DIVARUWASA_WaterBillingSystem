@@ -411,6 +411,14 @@
                     </tr>
                 @endif
 
+                @if($bill->meter_installment > 0)
+                    <tr>
+                        <td>Meter Installment</td>
+                        <td class="text-right">₱{{ number_format($bill->meter_installment, 2) }}</td>
+                    </tr>
+                @endif
+
+
                 <tr class="total-row">
                     <td>TOTAL AMOUNT</td>
                     <td class="text-right">₱{{ number_format($bill->total_amount, 2) }}</td>

@@ -33,6 +33,8 @@ class Payment extends Model
 
     public const TYPE_MAINTENANCE = 'maintenance';
 
+    public const TYPE_METER = 'meter';
+
     protected function casts(): array
     {
         return [
@@ -92,6 +94,14 @@ class Payment extends Model
     }
 
     /**
+     * Check if this is a meter payment (early payoff).
+     */
+    public function isMeterPayment(): bool
+    {
+        return $this->payment_type === self::TYPE_METER;
+    }
+
+    /**
      * Get a description of what this payment is for.
      */
     public function getPaymentDescriptionAttribute(): string
@@ -102,6 +112,10 @@ class Payment extends Model
 
         if ($this->isMaintenancePayment() && $this->maintenanceRequest) {
             return 'Maintenance Materials - Request #'.$this->maintenanceRequest->id;
+        }
+
+        if ($this->isMeterPayment()) {
+            return 'Meter Payment';
         }
 
         return 'Payment';

@@ -91,6 +91,7 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
     Route::post('/bills/{bill}/payments', [App\Http\Controllers\PaymentController::class, 'store'])->name('payments.store');
     Route::get('/payments/{payment}', [App\Http\Controllers\PaymentController::class, 'show'])->name('payments.show');
     Route::get('/payments/{payment}/receipt', [App\Http\Controllers\PaymentController::class, 'receipt'])->name('payments.receipt');
+    Route::post('/meters/{consumerMeter}/pay', [App\Http\Controllers\PaymentController::class, 'payMeterBalance'])->name('meters.pay-balance');
     Route::get('/payments-summary', [App\Http\Controllers\PaymentController::class, 'dailySummary'])->name('payments.daily-summary');
 
     // Reports (Admin & Cashier for bill-related, Admin only for others)

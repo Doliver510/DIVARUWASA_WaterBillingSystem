@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Consumer extends Model
 {
@@ -26,6 +27,7 @@ class Consumer extends Model
         'id_no',
         'block_id',
         'lot_number',
+        'meter_number',
         'status',
     ];
 
@@ -106,6 +108,24 @@ class Consumer extends Model
     public function maintenanceRequests(): HasMany
     {
         return $this->hasMany(MaintenanceRequest::class);
+    }
+
+    /**
+     * Get all meter records for this consumer.
+     */
+    public function meters(): HasMany
+    {
+        return $this->hasMany(ConsumerMeter::class);
+    }
+
+    /**
+     * Get the currently active meter (latest installed, not removed).
+     */
+    public function activeMeter(): HasOne
+    {
+        return $this->hasOne(ConsumerMeter::class)
+            ->whereNull('removed_at')
+            ->latest('installed_at');
     }
 
     /**
